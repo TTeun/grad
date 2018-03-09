@@ -20,7 +20,8 @@ SOURCES += main.cpp \
     vertex.cpp \
     objfile.cpp \
     halfedge.cpp \
-    subdiv.cpp
+    subdiv.cpp \
+    mousehandler.cpp
 
 HEADERS += \
     window.h \
@@ -30,9 +31,12 @@ HEADERS += \
     face.h \
     mesh.h \
     objfile.h \
-    subdiv.h
+    subdiv.h \
+    mousehandler.h
 
 RESOURCES += \
     resources.qrc
 
 DISTFILES +=
+
+CONFIG += c++14

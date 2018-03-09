@@ -2,23 +2,15 @@
 #include "subdiv.h"
 
 Renderable::Renderable()
-    : m_mesh(new Mesh(new OBJFile("models/square.obj"))),
-      m_data(new std::vector<float>),
+    : m_data(new std::vector<float>),
       m_indices(new std::vector<unsigned int>),
       m_colourShader(new QOpenGLShaderProgram()),
       m_blackShader(new QOpenGLShaderProgram()),
+      m_whiteShader(new QOpenGLShaderProgram()),
+      m_vertexBuffer(
+          new QOpenGLBuffer(QOpenGLBuffer(QOpenGLBuffer::VertexBuffer))),
       m_indexBuffer(
           new QOpenGLBuffer(QOpenGLBuffer(QOpenGLBuffer::IndexBuffer))) {
-  {
-    Mesh* mesh = new Mesh();
-    Subdiv::subdivideCatmullClark(m_mesh, mesh);
-    m_mesh = mesh;
-  }
-  {
-    Mesh* mesh = new Mesh();
-    Subdiv::subdivideCatmullClark(m_mesh, mesh);
-    m_mesh = mesh;
-  }
   m_colourShader->addShaderFromSourceFile(QOpenGLShader::Vertex,
                                           ":/shaders/vert.glsl");
   m_colourShader->addShaderFromSourceFile(QOpenGLShader::Fragment,
@@ -27,14 +19,20 @@ Renderable::Renderable()
                                          ":/shaders/vert_black.glsl");
   m_blackShader->addShaderFromSourceFile(QOpenGLShader::Fragment,
                                          ":/shaders/frag.glsl");
+  m_whiteShader->addShaderFromSourceFile(QOpenGLShader::Vertex,
+                                         ":/shaders/vert_white.glsl");
+  m_whiteShader->addShaderFromSourceFile(QOpenGLShader::Fragment,
+                                         ":/shaders/frag.glsl");
 
   m_colourShader->link();
+  m_blackShader->link();
+  m_whiteShader->link();
   m_colourShader->bind();
 
-  m_buffer.create();
-  m_buffer.bind();
-  m_buffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
-  m_buffer.allocate(m_data->data(), m_data->size() * sizeof(float));
+  m_vertexBuffer->create();
+  m_vertexBuffer->bind();
+  m_vertexBuffer->setUsagePattern(QOpenGLBuffer::StaticDraw);
+  m_vertexBuffer->allocate(m_data->data(), m_data->size() * sizeof(float));
 
   m_indexBuffer->create();
   m_indexBuffer->bind();
@@ -57,14 +55,14 @@ Renderable::Renderable()
                                     5 * sizeof(float));
 
   m_vao.release();
-  m_buffer.release();
+  m_vertexBuffer->release();
   m_indexBuffer->release();
   m_colourShader->release();
 }
 
 Renderable::~Renderable() {
   m_vao.destroy();
-  m_buffer.destroy();
+  m_vertexBuffer->destroy();
   m_indexBuffer->destroy();
 }
 
@@ -94,30 +92,38 @@ void Renderable::fillCoords() {
 void Renderable::render() {
   update();
   m_vao.bind();
-  m_buffer.bind();
+  m_vertexBuffer->bind();
   m_indexBuffer->bind();
 
-  {
+  if (m_renderMode & static_cast<int>(RenderMode::SURFACE)) {
     m_colourShader->bind();
     glDrawElements(GL_TRIANGLE_FAN, m_indexBuffer->size(), GL_UNSIGNED_INT, 0);
     m_colourShader->release();
   }
 
-  {
+  if (m_renderMode & static_cast<int>(RenderMode::LINES)) {
     m_blackShader->bind();
     glDrawElements(GL_LINES, m_indexBuffer->size(), GL_UNSIGNED_INT, 0);
     m_blackShader->release();
   }
 
-  {
-    glPointSize(10);
-    m_colourShader->bind();
-    glDrawElements(GL_POINTS, m_indexBuffer->size(), GL_UNSIGNED_INT, 0);
-    m_colourShader->release();
+  if (m_renderMode & static_cast<int>(RenderMode::POINTS)) {
+    {
+      glPointSize(10);
+      m_blackShader->bind();
+      glDrawElements(GL_POINTS, m_indexBuffer->size(), GL_UNSIGNED_INT, 0);
+      m_blackShader->release();
+    }
+    {
+      glPointSize(8);
+      m_colourShader->bind();
+      glDrawElements(GL_POINTS, m_indexBuffer->size(), GL_UNSIGNED_INT, 0);
+      m_colourShader->release();
+    }
   }
 
   m_indexBuffer->release();
-  m_buffer.release();
+  m_vertexBuffer->release();
   m_vao.release();
 }
 
@@ -125,9 +131,9 @@ void Renderable::update() {
   if (m_coordsNeedToBeFilled) {
     fillCoords();
     m_vao.bind();
-    m_buffer.bind();
+    m_vertexBuffer->bind();
     m_indexBuffer->bind();
-    m_buffer.allocate(m_data->data(), m_data->size() * sizeof(float));
+    m_vertexBuffer->allocate(m_data->data(), m_data->size() * sizeof(float));
     m_indexBuffer->allocate(m_indices->data(),
                             m_indices->size() * sizeof(unsigned int));
     m_vao.release();
@@ -140,4 +146,12 @@ bool Renderable::coordsNeedToBeFilled() const {
 
 void Renderable::setCoordsNeedToBeFilled(bool coordsNeedToBeFilled) {
   m_coordsNeedToBeFilled = coordsNeedToBeFilled;
+}
+
+void Renderable::setMesh(Mesh* mesh) {
+  m_mesh = mesh;
+}
+
+void Renderable::setRenderMode(const int& renderMode) {
+  m_renderMode = renderMode;
 }

@@ -3,5 +3,6 @@
         <file>shaders/frag.glsl</file>
         <file>shaders/vert.glsl</file>
         <file>shaders/vert_black.glsl</file>
+        <file>shaders/vert_white.glsl</file>
     </qresource>
 </RCC>
