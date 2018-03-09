@@ -169,11 +169,6 @@ void Subdiv::subdivideCatmullClark(Mesh const* oldMesh, Mesh* newMesh) {
   assert(newMesh->checkMesh());
 }
 
-//#include "../auxilliary/geom.h"
-//#include "../auxilliary/utility.h"
-//#include "../mesh/mesh.h"
-//#include "subdiv.h"
-
 void Subdiv::subdivideTernary(const Mesh* oldMesh, Mesh* newMesh) {
   size_t k, l;
   size_t vertCount = oldMesh->vertices().size();
@@ -249,7 +244,7 @@ void Subdiv::subdivideTernary(const Mesh* oldMesh, Mesh* newMesh) {
     currentEdge = &oldMesh->halfEdges()[k];
     newMesh->halfEdges().push_back(
         HalfEdge(&newMesh->vertices()[vertCount + currentEdge->index()],
-                 QVector3D(0., 0., 0.),
+                 currentEdge->twin()->colour(),
                  nullptr,
                  nullptr,
                  nullptr,
@@ -257,7 +252,7 @@ void Subdiv::subdivideTernary(const Mesh* oldMesh, Mesh* newMesh) {
                  3 * k));
     newMesh->halfEdges().push_back(
         HalfEdge(&newMesh->vertices()[vertCount + currentEdge->twin()->index()],
-                 QVector3D(0., 0., 0.),
+                 currentEdge->colour(),
                  nullptr,
                  nullptr,
                  nullptr,
@@ -265,7 +260,7 @@ void Subdiv::subdivideTernary(const Mesh* oldMesh, Mesh* newMesh) {
                  3 * k + 1));
     newMesh->halfEdges().push_back(
         HalfEdge(&newMesh->vertices()[currentEdge->target()->index()],
-                 QVector3D(0., 0., 0.),
+                 currentEdge->colour(),
                  nullptr,
                  nullptr,
                  nullptr,
@@ -320,7 +315,6 @@ void Subdiv::subdivideTernary(const Mesh* oldMesh, Mesh* newMesh) {
   size_t faceIndex = 0;
 
   newMesh->faces().clear();
-  ;
   newMesh->faces().reserve(newFaceCount);
 
   for (Face const& face : oldMesh->faces()) {
@@ -335,42 +329,42 @@ void Subdiv::subdivideTernary(const Mesh* oldMesh, Mesh* newMesh) {
       twinIndex    = currentEdge->twin()->index();
 
       newMesh->halfEdges().push_back(HalfEdge(&newMesh->vertices()[vertIndex],
-                                              QVector3D(0., 0., 0.),
+                                              currentEdge->colour(),
                                               nullptr,
                                               nullptr,
                                               nullptr,
                                               nullptr,
                                               edgeIndex));
       newMesh->halfEdges().push_back(HalfEdge(&newMesh->vertices()[vertIndex],
-                                              QVector3D(0., 0., 0.),
+                                              currentEdge->colour(),
                                               nullptr,
                                               nullptr,
                                               nullptr,
                                               nullptr,
                                               edgeIndex + 1));
       newMesh->halfEdges().push_back(HalfEdge(&newMesh->vertices()[vertCount + nextIndex],
-                                              QVector3D(0., 0., 0.),
+                                              currentEdge->colour(),
                                               nullptr,
                                               nullptr,
                                               nullptr,
                                               nullptr,
                                               edgeIndex + 2));
       newMesh->halfEdges().push_back(HalfEdge(&newMesh->vertices()[vertIndex],
-                                              QVector3D(0., 0., 0.),
+                                              currentEdge->colour(),
                                               nullptr,
                                               nullptr,
                                               nullptr,
                                               nullptr,
                                               edgeIndex + 3));
       newMesh->halfEdges().push_back(HalfEdge(&newMesh->vertices()[vertCount + twinIndex],
-                                              QVector3D(0., 0., 0.),
+                                              currentEdge->colour(),
                                               nullptr,
                                               nullptr,
                                               nullptr,
                                               nullptr,
                                               edgeIndex + 4));
       newMesh->halfEdges().push_back(HalfEdge(&newMesh->vertices()[vertIndex],
-                                              QVector3D(0., 0., 0.),
+                                              currentEdge->colour(),
                                               nullptr,
                                               nullptr,
                                               nullptr,
@@ -434,4 +428,5 @@ void Subdiv::subdivideTernary(const Mesh* oldMesh, Mesh* newMesh) {
       mutableEdge = mutableEdge->next();
     }
   }
+  assert(newMesh->checkMesh());
 }

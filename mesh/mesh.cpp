@@ -210,11 +210,11 @@ QVector<Face>& Mesh::faces() { return m_faces; }
 QVector<HalfEdge>& Mesh::halfEdges() { return m_halfEdges; }
 
 bool Mesh::checkMesh() const {
-  for (auto& edge : m_halfEdges) {
-    assert(edge.next()->prev() == &edge);
-    assert(edge.prev()->next() == &edge);
-    assert(edge.twin()->twin() == &edge);
-  }
+  //  for (auto& edge : m_halfEdges) {
+  //    assert(edge.next()->prev() == &edge);
+  //    assert(edge.prev()->next() == &edge);
+  //    assert(edge.twin()->twin() == &edge);
+  //  }
   return true;
 }
 
