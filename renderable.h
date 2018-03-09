@@ -23,6 +23,7 @@ class Renderable {
   virtual ~Renderable();
 
   virtual void fillCoords() = 0;
+  void init();
   void render();
   void update();
 

@@ -7,7 +7,6 @@
 QT       += core gui
 
 TARGET = 1_BasicRendering
-CONFIG   += console
 CONFIG   -= app_bundle
 
 TEMPLATE = app

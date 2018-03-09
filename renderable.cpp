@@ -11,6 +11,18 @@ Renderable::Renderable()
           new QOpenGLBuffer(QOpenGLBuffer(QOpenGLBuffer::VertexBuffer))),
       m_indexBuffer(
           new QOpenGLBuffer(QOpenGLBuffer(QOpenGLBuffer::IndexBuffer))) {
+  setRenderMode(static_cast<int>(RenderMode::SURFACE) |
+                static_cast<int>(RenderMode::POINTS) |
+                static_cast<int>(RenderMode::LINES));
+}
+
+Renderable::~Renderable() {
+  m_vao.destroy();
+  m_vertexBuffer->destroy();
+  m_indexBuffer->destroy();
+}
+
+void Renderable::init() {
   m_colourShader->addShaderFromSourceFile(QOpenGLShader::Vertex,
                                           ":/shaders/vert.glsl");
   m_colourShader->addShaderFromSourceFile(QOpenGLShader::Fragment,
@@ -58,12 +70,6 @@ Renderable::Renderable()
   m_vertexBuffer->release();
   m_indexBuffer->release();
   m_colourShader->release();
-}
-
-Renderable::~Renderable() {
-  m_vao.destroy();
-  m_vertexBuffer->destroy();
-  m_indexBuffer->destroy();
 }
 
 void Renderable::render() {
