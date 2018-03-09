@@ -35,8 +35,8 @@ class MainWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_1_Core {
   void mouseReleaseEvent(QMouseEvent* event);
   void mouseMoveEvent(QMouseEvent* event);
 
-  std::unique_ptr<MouseHandler> m_mouseHandler;
-  std::unique_ptr<MeshHandler> m_meshHandler;
+  std::unique_ptr<MouseHandler>  m_mouseHandler;
+  std::unique_ptr<MeshHandler>   m_meshHandler;
   std::unique_ptr<ControlWidget> m_controlWidget;
 };
 

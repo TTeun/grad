@@ -9,6 +9,7 @@ class Subdiv {
 
  public:
   static void subdivideCatmullClark(Mesh const* oldMesh, Mesh* newMesh);
+  static void subdivideTernary(Mesh const* oldMesh, Mesh* newMesh);
 };
 
 #endif  // SUBIV_H

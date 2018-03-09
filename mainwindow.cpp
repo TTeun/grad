@@ -20,10 +20,10 @@ MainWindow::~MainWindow() {}
 void MainWindow::initializeGL() {
   initializeOpenGLFunctions();
 
-  assert(QObject::connect(this, SIGNAL(visibleChanged(bool)),
-                          m_controlWidget.get(), SLOT(close())));
-  assert(QObject::connect(m_controlWidget.get(), SIGNAL(aboutToClose()), this,
-                          SLOT(close())));
+  assert(QObject::connect(
+      this, SIGNAL(visibleChanged(bool)), m_controlWidget.get(), SLOT(close())));
+  assert(QObject::connect(
+      m_controlWidget.get(), SIGNAL(aboutToClose()), this, SLOT(close())));
 
   glEnable(GL_PRIMITIVE_RESTART);
   glPrimitiveRestartIndex(std::numeric_limits<unsigned int>::max());
@@ -33,20 +33,21 @@ void MainWindow::initializeGL() {
   connectMembers();
 }
 
-void MainWindow::initMembers() {
-  m_meshHandler->init(QString("models/tri1.obj"));
-}
+void MainWindow::initMembers() { m_meshHandler->init(QString("models/tri1.obj")); }
 
 void MainWindow::connectMembers() {
   assert(QObject::connect(m_controlWidget.get()->getUi()->meshIndexSpinBox,
-                          SIGNAL(valueChanged(int)), this->m_meshHandler.get(),
+                          SIGNAL(valueChanged(int)),
+                          this->m_meshHandler.get(),
                           SLOT(currentMeshIndexChanged(int))));
 
-  assert(QObject::connect(m_meshHandler.get(), SIGNAL(hasChanged()), this,
-                          SLOT(update())));
+  assert(
+      QObject::connect(m_meshHandler.get(), SIGNAL(hasChanged()), this, SLOT(update())));
 
-  assert(QObject::connect(m_mouseHandler.get(), SIGNAL(clicked(QVector2D&)),
-                          m_meshHandler.get(), SLOT(findClosest(QVector2D&))));
+  assert(QObject::connect(m_mouseHandler.get(),
+                          SIGNAL(rightClicked(QVector2D const&)),
+                          m_meshHandler.get(),
+                          SLOT(setColour(QVector2D const&))));
 }
 
 void MainWindow::resizeGL(int width, int height) {
@@ -72,6 +73,4 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event) {
   m_mouseHandler->mouseMoveEvent(event);
 }
 
-void MainWindow::cleanUp() {
-  qDebug() << "Clean up\n";
-}
+void MainWindow::cleanUp() { qDebug() << "Clean up\n"; }

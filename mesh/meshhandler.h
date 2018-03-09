@@ -8,7 +8,9 @@
 
 #include "../renderable/meshrenderable.h"
 #include "../renderable/selectionrenderable.h"
-#include "mesh.h"
+
+class MeshRenderable;
+class SelectionRenderable;
 
 class MeshHandler : public QObject {
   Q_OBJECT
@@ -16,7 +18,7 @@ class MeshHandler : public QObject {
   MeshHandler(QObject* parent = nullptr);
 
   void init(const QString& path);
-  void buildMeshes();
+  void buildMeshes(size_t startIndex = 0);
   void render() const;
 
   size_t ccSteps() const;
@@ -24,13 +26,15 @@ class MeshHandler : public QObject {
 
  public slots:
   void currentMeshIndexChanged(int newIndex);
-  void findClosest(QVector2D& mousePosition);
+  void setColour(const QVector2D& mousePosition);
 
  signals:
   void hasChanged();
 
  private:
-  size_t m_ccSteps          = 3;
+  HalfEdge* findClosest(const QVector2D& mousePosition);
+
+  size_t m_ccSteps          = 0;
   size_t m_currentMeshIndex = 0;
 
   std::vector<std::unique_ptr<Mesh>>   m_meshVector;

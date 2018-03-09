@@ -10,7 +10,7 @@ void SelectionRenderable::reset() {
   m_indices->clear();
 }
 
-void SelectionRenderable::fillCoords(const HalfEdge* edge) {
+void SelectionRenderable::fillCoords(HalfEdge const* edge) {
   reset();
   m_data->push_back(edge->target()->coords()[0]);
   m_data->push_back(edge->target()->coords()[1]);

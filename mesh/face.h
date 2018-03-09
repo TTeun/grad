@@ -13,18 +13,20 @@ class Face {
   Face(HalfEdge* side, unsigned short val, unsigned int index)
       : m_side(side), m_val(val), m_index(index) {}
 
-  HalfEdge* side() const;
-  void setSide(HalfEdge* side);
+  HalfEdge*      side() const;
+  void           setSide(HalfEdge* side);
   unsigned short val() const;
-  unsigned int index() const;
+  unsigned int   index() const;
 
   QVector2D center() const;
   QVector3D centerColour() const;
 
+  bool containsPoint(QVector2D const& point);
+
  private:
-  HalfEdge* m_side;
+  HalfEdge*      m_side;
   unsigned short m_val;
-  unsigned int m_index;
+  unsigned int   m_index;
 };
 
 #endif  // FACE

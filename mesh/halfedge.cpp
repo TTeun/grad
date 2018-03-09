@@ -13,14 +13,14 @@ HalfEdge::HalfEdge()
       m_sharpness(0),
       m_colGrad(QVector2D(0.0, 0.0)) {}
 
-HalfEdge::HalfEdge(Vertex* target,
+HalfEdge::HalfEdge(Vertex*          target,
                    const QVector3D& colour,
-                   HalfEdge* next,
-                   HalfEdge* prev,
-                   HalfEdge* twin,
-                   Face* polygon,
-                   unsigned int index,
-                   float sharpness)
+                   HalfEdge*        next,
+                   HalfEdge*        prev,
+                   HalfEdge*        twin,
+                   Face*            polygon,
+                   unsigned int     index,
+                   float            sharpness)
     : m_target(target),
       m_colour(std::move(colour)),
       m_next(next),
@@ -31,14 +31,14 @@ HalfEdge::HalfEdge(Vertex* target,
       m_sharpness(sharpness),
       m_colGrad(QVector2D(0.0, 0.0)) {}
 
-HalfEdge::HalfEdge(Vertex* target,
+HalfEdge::HalfEdge(Vertex*          target,
                    const QVector3D& colour,
-                   HalfEdge* next,
-                   HalfEdge* prev,
-                   HalfEdge* twin,
-                   Face* polygon,
-                   unsigned int index,
-                   float sharpness,
+                   HalfEdge*        next,
+                   HalfEdge*        prev,
+                   HalfEdge*        twin,
+                   Face*            polygon,
+                   unsigned int     index,
+                   float            sharpness,
                    QVector2D const& colGrad)
 
     : m_target(target),
@@ -51,73 +51,39 @@ HalfEdge::HalfEdge(Vertex* target,
       m_sharpness(sharpness),
       m_colGrad(colGrad) {}
 
-Vertex* HalfEdge::target() const {
-  return m_target;
-}
+Vertex* HalfEdge::target() const { return m_target; }
 
-void HalfEdge::setTarget(Vertex* target) {
-  m_target = target;
-}
+void HalfEdge::setTarget(Vertex* target) { m_target = target; }
 
-HalfEdge* HalfEdge::next() const {
-  return m_next;
-}
+HalfEdge* HalfEdge::next() const { return m_next; }
 
-void HalfEdge::setNext(HalfEdge* next) {
-  m_next = next;
-}
+void HalfEdge::setNext(HalfEdge* next) { m_next = next; }
 
-HalfEdge* HalfEdge::prev() const {
-  return m_prev;
-}
+HalfEdge* HalfEdge::prev() const { return m_prev; }
 
-void HalfEdge::setPrev(HalfEdge* prev) {
-  m_prev = prev;
-}
+void HalfEdge::setPrev(HalfEdge* prev) { m_prev = prev; }
 
-HalfEdge* HalfEdge::twin() const {
-  return m_twin;
-}
+HalfEdge* HalfEdge::twin() const { return m_twin; }
 
-void HalfEdge::setTwin(HalfEdge* twin) {
-  m_twin = twin;
-}
+void HalfEdge::setTwin(HalfEdge* twin) { m_twin = twin; }
 
-Face* HalfEdge::polygon() const {
-  return m_polygon;
-}
+Face* HalfEdge::polygon() const { return m_polygon; }
 
-void HalfEdge::setPolygon(Face* polygon) {
-  m_polygon = polygon;
-}
+void HalfEdge::setPolygon(Face* polygon) { m_polygon = polygon; }
 
-unsigned int HalfEdge::index() const {
-  return m_index;
-}
+unsigned int HalfEdge::index() const { return m_index; }
 
-void HalfEdge::setIndex(unsigned int index) {
-  m_index = index;
-}
+void HalfEdge::setIndex(unsigned int index) { m_index = index; }
 
-float HalfEdge::sharpness() const {
-  return m_sharpness;
-}
+float HalfEdge::sharpness() const { return m_sharpness; }
 
-void HalfEdge::setSharpness(float sharpness) {
-  m_sharpness = sharpness;
-}
+void HalfEdge::setSharpness(float sharpness) { m_sharpness = sharpness; }
 
-QVector2D HalfEdge::colGrad() const {
-  return m_colGrad;
-}
+QVector2D HalfEdge::colGrad() const { return m_colGrad; }
 
-void HalfEdge::setColGrad(const QVector2D& colGrad) {
-  m_colGrad = colGrad;
-}
+void HalfEdge::setColGrad(const QVector2D& colGrad) { m_colGrad = colGrad; }
 
-QVector3D HalfEdge::colour() const {
-  return m_colour;
-}
+QVector3D HalfEdge::colour() const { return m_colour; }
 
 QVector2D HalfEdge::center() const {
   QVector2D c = m_target->coords();
@@ -127,8 +93,7 @@ QVector2D HalfEdge::center() const {
 }
 
 QVector3D HalfEdge::centerColour() const {
-  if ((!m_polygon) || (!m_twin->polygon()))
-    return 0.5 * (m_colour + m_prev->colour());
+  if ((!m_polygon) || (!m_twin->polygon())) return 0.5 * (m_colour + m_prev->colour());
 
   QVector3D c = m_colour + m_prev->colour();
   c += m_polygon->centerColour();
@@ -138,25 +103,22 @@ QVector3D HalfEdge::centerColour() const {
 
 QVector3D HalfEdge::endColour() const {
   QVector3D c = 6. * m_colour;
-  c += m_prev->colour();
-  c += m_next->colour();
+  //  c += m_prev->colour();
+  //  c += m_next->colour();
 
-  return c / 8.;
+  return c / 6.;
 }
 
-double HalfEdge::distanceToPoint(QVector2D point) {
-  point = point - start();
-  QVector2D dir = end() - start();
+double HalfEdge::distanceToPoint(const QVector2D& mousePoint) const {
+  QVector2D point = mousePoint - start();
+  QVector2D dir   = end() - start();
 
   float d = QVector2D::dotProduct(dir, point);
-  if (d < 0 || d > dir.lengthSquared())
-    return 10000.0f;
+  if (d < 0 || d > dir.lengthSquared()) return 10000.0f;
 
   dir.normalize();
   point = point - d * dir;
   return point.length();
 }
 
-void HalfEdge::setColour(const QVector3D& colour) {
-  m_colour = colour;
-}
+void HalfEdge::setColour(const QVector3D& colour) { m_colour = colour; }

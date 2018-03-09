@@ -20,9 +20,9 @@ class MouseHandler : public QObject {
   void mouseMoveEvent(QMouseEvent* event);
 
  signals:
-  void clicked(QVector2D& pos);
-  void rightClicked(QVector2D& pos);
-  void leftClicked(QVector2D& pos);
+  void clicked(QVector2D const& pos);
+  void rightClicked(QVector2D const& pos);
+  void leftClicked(QVector2D const& pos);
 
  public slots:
 

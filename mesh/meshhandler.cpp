@@ -1,4 +1,5 @@
 #include "meshhandler.h"
+#include <QColorDialog>
 
 MeshHandler::MeshHandler(QObject* parent)
     : QObject(parent),
@@ -23,11 +24,15 @@ void MeshHandler::init(const QString& path) {
   buildMeshes();
 }
 
-void MeshHandler::buildMeshes() {
+void MeshHandler::buildMeshes(size_t startIndex) {
   m_meshVector.resize(1);
-  for (size_t i = 0; i != m_ccSteps; ++i) {
+
+  m_meshVector.push_back(m_meshVector.back()->ternarySubdiv());
+
+  for (size_t i = startIndex; i < m_ccSteps; ++i) {
     m_meshVector.push_back(m_meshVector.back()->ccSubdiv());
   }
+
   m_skeletonRenderable->setMesh(m_meshVector[0].get());
   m_skeletonRenderable->setCoordsNeedToBeFilled(true);
   m_meshRenderable->setMesh(m_meshVector.back().get());
@@ -56,18 +61,43 @@ void MeshHandler::currentMeshIndexChanged(int newIndex) {
   emit hasChanged();
 }
 
-void MeshHandler::findClosest(QVector2D& mousePosition) {
-  double    minDistance  = 10000.;
-  HalfEdge* selectedEdge = nullptr;
-  for (auto edge : m_meshVector[m_currentMeshIndex]->halfEdges()) {
-    if (edge.distanceToPoint(mousePosition) < minDistance) {
-      minDistance  = edge.distanceToPoint(mousePosition) < minDistance;
-      selectedEdge = &edge;
+void MeshHandler::setColour(const QVector2D& mousePosition) {
+  HalfEdge* edge;
+  if ((edge = findClosest(mousePosition)) == nullptr) return;
+
+  QColor color = QColorDialog::getColor(Qt::white);
+  edge->setColour(QVector3D(color.redF(), color.greenF(), color.blueF()));
+
+  buildMeshes(m_currentMeshIndex + 1);
+  emit hasChanged();
+}
+
+HalfEdge* MeshHandler::findClosest(QVector2D const& mousePosition) {
+  Face* selectedFace = nullptr;
+  for (auto face : m_meshVector[m_currentMeshIndex]->faces()) {
+    if (face.containsPoint(mousePosition)) {
+      selectedFace = &face;
+      break;
     }
   }
-  //  selectedEdge = &m_meshVector[m_currentMeshIndex]->halfEdges().front();
-  m_selectionRenderable->fillCoords(selectedEdge);
-  qDebug() << selectedEdge->index();
+  if (not selectedFace) {
+    qDebug() << "Outside polygon\n";
+    return nullptr;
+  }
 
-  emit hasChanged();
+  double minDistance = 10000.0;
+  size_t edgeIndex   = std::numeric_limits<size_t>::max();
+  auto*  currentEdge = selectedFace->side();
+  for (size_t i = 0; i != selectedFace->val(); ++i) {
+    if ((currentEdge->target()->coords() - mousePosition).lengthSquared() < minDistance) {
+      minDistance = (currentEdge->target()->coords() - mousePosition).lengthSquared();
+      edgeIndex   = currentEdge->index();
+    }
+    currentEdge = currentEdge->next();
+  }
+  if (edgeIndex != std::numeric_limits<size_t>::max())
+    m_selectionRenderable->fillCoords(
+        &m_meshVector[m_currentMeshIndex]->halfEdges().at(edgeIndex));
+
+  return &m_meshVector[m_currentMeshIndex]->halfEdges()[edgeIndex];
 }

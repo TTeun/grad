@@ -13,7 +13,9 @@ class SelectionRenderable : public Renderable {
   void reset();
   void render() override;
   void update() override;
-  void fillCoords(const HalfEdge* halfEdge);
+  void fillCoords(const HalfEdge *halfEdge);
+
+ private:
 };
 
 #endif  // SELECTIONRENDERABLE_H
