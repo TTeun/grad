@@ -20,20 +20,18 @@ class Renderable {
   };
 
   Renderable();
-  ~Renderable();
+  virtual ~Renderable();
 
-  void fillCoords();
+  virtual void fillCoords() = 0;
   void render();
   void update();
 
   bool coordsNeedToBeFilled() const;
   void setCoordsNeedToBeFilled(bool coordsNeedToBeFilled);
-  void setMesh(Mesh* mesh);
   void setRenderMode(const int& renderMode);
 
- private:
+ protected:
   int m_renderMode = static_cast<int>(RenderMode::ALL);
-  Mesh* m_mesh;
   bool m_coordsNeedToBeFilled = true;
 
   std::unique_ptr<std::vector<float>> m_data;

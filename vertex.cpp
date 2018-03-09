@@ -1,31 +1,21 @@
 #include "vertex.h"
 
-Vertex::Vertex() {
-  qDebug() << "Default Vertex Constructor";
-  m_coords = QVector2D();
-  m_out = nullptr;
-  m_val = 0;
-  m_index = 0;
-  m_sharpness = 0;
-}
+Vertex::Vertex()
+    : m_coords(), m_out(nullptr), m_val(0), m_index(0), m_sharpness(0) {}
 
 Vertex::Vertex(QVector2D const& coords,
                HalfEdge* out,
                unsigned short val,
                unsigned int index,
                float sharpness)
-    : m_coords(coords),
+    : m_coords(std::move(coords)),
       m_out(out),
       m_val(val),
       m_index(index),
       m_sharpness(sharpness) {}
 
-Vertex::Vertex(const QVector2D& coords) : m_coords(coords) {
-  m_out = nullptr;
-  m_val = 0;
-  m_index = 0;
-  m_sharpness = 0;
-}
+Vertex::Vertex(const QVector2D& coords)
+    : m_coords(coords), m_out(nullptr), m_val(0), m_index(0), m_sharpness(0) {}
 
 QVector2D Vertex::coords() const {
   return m_coords;

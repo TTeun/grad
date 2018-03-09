@@ -8,7 +8,7 @@ class Subdiv {
   Subdiv() = delete;
 
  public:
-  static void subdivideCatmullClark(Mesh* oldMesh, Mesh* newMesh);
+  static void subdivideCatmullClark(Mesh const* oldMesh, Mesh* newMesh);
 };
 
 #endif  // SUBIV_H

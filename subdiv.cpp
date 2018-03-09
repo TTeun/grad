@@ -11,7 +11,7 @@ void setTwin(HalfEdge* twin1, HalfEdge* twin2) {
   twin2->setTwin(twin1);
 }
 
-void buildNewVertices(Mesh* oldMesh, Mesh* newMesh) {
+void buildNewVertices(Mesh const* oldMesh, Mesh* newMesh) {
   const auto& oldFaces = oldMesh->faces();
   const auto& oldHalfEdges = oldMesh->halfEdges();
   const auto& oldVertices = oldMesh->vertices();
@@ -36,7 +36,7 @@ void buildNewVertices(Mesh* oldMesh, Mesh* newMesh) {
   }
 }
 
-void buildNewHalfEdges(Mesh* oldMesh, Mesh* newMesh) {
+void buildNewHalfEdges(Mesh const* oldMesh, Mesh* newMesh) {
   const auto& oldFaces = oldMesh->faces();
   const auto& oldHalfEdges = oldMesh->halfEdges();
   const auto& oldVertices = oldMesh->vertices();
@@ -105,7 +105,7 @@ void buildNewHalfEdges(Mesh* oldMesh, Mesh* newMesh) {
   }
 }
 
-void buildNewFaces(Mesh* oldMesh, Mesh* newMesh) {
+void buildNewFaces(Mesh const* oldMesh, Mesh* newMesh) {
   const auto& oldFaces = oldMesh->faces();
   const auto& oldHalfEdges = oldMesh->halfEdges();
 
@@ -153,7 +153,7 @@ void buildNewFaces(Mesh* oldMesh, Mesh* newMesh) {
   }
 }
 
-void Subdiv::subdivideCatmullClark(Mesh* oldMesh, Mesh* newMesh) {
+void Subdiv::subdivideCatmullClark(Mesh const* oldMesh, Mesh* newMesh) {
   buildNewVertices(oldMesh, newMesh);
   buildNewHalfEdges(oldMesh, newMesh);
   buildNewFaces(oldMesh, newMesh);

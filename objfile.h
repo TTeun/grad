@@ -8,8 +8,8 @@
 
 class OBJFile {
  public:
-  OBJFile(QString fileName);
-  OBJFile(QString file, int x);
+  OBJFile(QString const& fileName);
+  OBJFile(QString const& file, int x);
   ~OBJFile();
 
   QVector<QVector2D> vertexCoords;

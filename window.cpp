@@ -15,21 +15,27 @@ void Window::initializeGL() {
   glPrimitiveRestartIndex(std::numeric_limits<unsigned int>::max());
 
   glClearColor(1.f, 1.f, 1.f, 1.0f);
+  initMembers();
+}
 
-  m_renderable = new Renderable();
-  m_renderable->setRenderMode(
+void Window::initMembers() {
+  m_meshRenderable = new MeshRenderable();
+  m_meshRenderable->setRenderMode(
       static_cast<int>(Renderable::RenderMode::SURFACE) |
       static_cast<int>(Renderable::RenderMode::POINTS) |
       static_cast<int>(Renderable::RenderMode::LINES));
-  m_meshVector.resize(ccSteps + 1);
 
-  m_meshVector[0] = new Mesh(new OBJFile("models/square.obj"));
-  for (size_t i = 0; i != ccSteps; ++i) {
-    m_meshVector[i + 1] = new Mesh();
-    Subdiv::subdivideCatmullClark(m_meshVector[i], m_meshVector[i + 1]);
+  {
+    OBJFile const* const objFile = new OBJFile("models/square.obj");
+    m_meshVector.push_back(std::unique_ptr<Mesh>(new Mesh(objFile)));
+    delete objFile;
   }
-  m_renderable->setMesh(m_meshVector.back());
-  m_renderable->setCoordsNeedToBeFilled(true);
+
+  for (size_t i = 0; i != ccSteps; ++i) {
+    m_meshVector.push_back(m_meshVector.back()->ccSubdiv());
+  }
+  m_meshRenderable->setMesh(m_meshVector.back().get());
+  m_meshRenderable->setCoordsNeedToBeFilled(true);
   m_currentMeshIndex = ccSteps;
 }
 
@@ -41,11 +47,11 @@ void Window::resizeGL(int width, int height) {
 void Window::paintGL() {
   glClear(GL_COLOR_BUFFER_BIT);
 
-  m_renderable->render();
+  m_meshRenderable->render();
 }
 
 void Window::cleanUp() {
-  delete m_renderable;
+  delete m_meshRenderable;
 }
 
 void Window::mousePressEvent(QMouseEvent* event) {

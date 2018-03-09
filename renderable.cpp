@@ -66,29 +66,6 @@ Renderable::~Renderable() {
   m_indexBuffer->destroy();
 }
 
-void Renderable::fillCoords() {
-  unsigned int index = 0;
-  auto const faces = m_mesh->faces();
-  HalfEdge* currentEdge;
-  for (auto face : faces) {
-    currentEdge = face.side();
-
-    for (size_t i = 0; i != face.val(); ++i) {
-      m_data->push_back(currentEdge->target()->coords()[0]);
-      m_data->push_back(currentEdge->target()->coords()[1]);
-      m_data->push_back(currentEdge->colour()[0]);
-      m_data->push_back(currentEdge->colour()[1]);
-      m_data->push_back(currentEdge->colour()[2]);
-      m_indices->push_back(index);
-      ++index;
-      currentEdge = currentEdge->next();
-    }
-    m_indices->push_back(std::numeric_limits<unsigned int>::max());
-  }
-
-  m_coordsNeedToBeFilled = false;
-}
-
 void Renderable::render() {
   update();
   m_vao.bind();
@@ -103,7 +80,7 @@ void Renderable::render() {
 
   if (m_renderMode & static_cast<int>(RenderMode::LINES)) {
     m_blackShader->bind();
-    glDrawElements(GL_LINES, m_indexBuffer->size(), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_LINE_LOOP, m_indexBuffer->size(), GL_UNSIGNED_INT, 0);
     m_blackShader->release();
   }
 
@@ -146,10 +123,6 @@ bool Renderable::coordsNeedToBeFilled() const {
 
 void Renderable::setCoordsNeedToBeFilled(bool coordsNeedToBeFilled) {
   m_coordsNeedToBeFilled = coordsNeedToBeFilled;
-}
-
-void Renderable::setMesh(Mesh* mesh) {
-  m_mesh = mesh;
 }
 
 void Renderable::setRenderMode(const int& renderMode) {

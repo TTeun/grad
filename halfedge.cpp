@@ -22,7 +22,7 @@ HalfEdge::HalfEdge(Vertex* target,
                    unsigned int index,
                    float sharpness)
     : m_target(target),
-      m_colour(colour),
+      m_colour(std::move(colour)),
       m_next(next),
       m_prev(prev),
       m_twin(twin),
@@ -42,7 +42,7 @@ HalfEdge::HalfEdge(Vertex* target,
                    QVector2D const& colGrad)
 
     : m_target(target),
-      m_colour(colour),
+      m_colour(std::move(colour)),
       m_next(next),
       m_prev(prev),
       m_twin(twin),

@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <QFile>
 
-OBJFile::OBJFile(QString fileName) {
+OBJFile::OBJFile(const QString& fileName) {
   qDebug() << "✓✓ OBJFile constructor";
 
   qDebug() << ":: Loading" << fileName;

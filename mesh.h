@@ -1,6 +1,7 @@
 #ifndef MESH_H
 #define MESH_H
 
+#include <memory>
 #include "face.h"
 #include "halfedge.h"
 #include "objfile.h"
@@ -9,7 +10,7 @@
 class Mesh {
  public:
   Mesh();
-  Mesh(OBJFile* loadedOBJFile);
+  Mesh(OBJFile const* const loadedOBJFile);
   ~Mesh();
 
   void copy(Mesh const* mesh);
@@ -23,6 +24,8 @@ class Mesh {
   QVector<HalfEdge>& halfEdges();
 
   bool checkMesh() const;
+
+  std::unique_ptr<Mesh> ccSubdiv() const;
 
  private:
   QVector<Vertex> m_vertices;

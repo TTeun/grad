@@ -1,13 +1,11 @@
 #include "mesh.h"
 #include <math.h>
 #include <cassert>
-#include <ctime>
+#include "subdiv.h"
 
 Mesh::Mesh() {}
 
-Mesh::Mesh(OBJFile* loadedOBJFile) {
-  srand(time(NULL));
-
+Mesh::Mesh(const OBJFile* const loadedOBJFile) {
   // Convert loaded OBJ file to HalfEdge mesh
   size_t numVertices, numHalfEdges, numFaces;
   size_t k, m, n;
@@ -53,8 +51,8 @@ Mesh::Mesh(OBJFile* loadedOBJFile) {
       // Target, Next, Prev, Twin, Poly, Index
       m_halfEdges.append(
           HalfEdge(&m_vertices[loadedOBJFile->faceCoordInd[currentIndex + n]],
-                   QVector3D(((double)rand() / (RAND_MAX)), 0.0, 0.0), nullptr,
-                   nullptr, nullptr, &m_faces[m], indexH));
+                   QVector3D(1., 0.0, 0.0), nullptr, nullptr, nullptr,
+                   &m_faces[m], indexH));
 
       // Next, Prev and Twin of the above HalfEdge have to be assigned later!
       // Starting below...
@@ -168,14 +166,11 @@ void Mesh::copy(Mesh const* mesh) {
   }
 
   for (size_t es = 0; es < numEdges; ++es) {
-    // HalfEdge(Vertex* htarget, HalfEdge* hnext, HalfEdge* hprev, HalfEdge*
-    // htwin, Face* hpolygon,  unsigned int hindex, float hsharpness=0,
-    // QVector2D hcolGrad = QVector2D(0.0, 0.0)) {
     currentEdge = &mesh->m_halfEdges[es];
-    m_halfEdges.append(
-        HalfEdge(nullptr, QVector3D(((double)rand() / (RAND_MAX)), 0.0, 0.0),
-                 nullptr, nullptr, nullptr, nullptr, currentEdge->index(),
-                 currentEdge->sharpness(), currentEdge->colGrad()));
+    m_halfEdges.append(HalfEdge(nullptr, QVector3D(1., 0.0, 0.0), nullptr,
+                                nullptr, nullptr, nullptr, currentEdge->index(),
+                                currentEdge->sharpness(),
+                                currentEdge->colGrad()));
     if (currentEdge->index() != es)
       qDebug() << "Edge index mismatch";
   }
@@ -227,15 +222,16 @@ bool Mesh::checkMesh() const {
     assert(edge.prev()->next() == &edge);
     assert(edge.twin()->twin() == &edge);
   }
+  return true;
+}
+
+std::unique_ptr<Mesh> Mesh::ccSubdiv() const {
+  Mesh* ccMesh = new Mesh;
+  Subdiv::subdivideCatmullClark(static_cast<Mesh const*>(this), ccMesh);
+  return std::move(std::unique_ptr<Mesh>(ccMesh));
 }
 
 Mesh::~Mesh() {
-  //  qDebug() << "✗✗ Mesh destructor";
-
-  //  qDebug() << "   # Vertices:" << Vertices.size();
-  //  qDebug() << "   # HalfEdges:" << HalfEdges.size();
-  //  qDebug() << "   # Faces:" << Faces.size();
-
   m_vertices.clear();
   m_vertices.squeeze();
   m_halfEdges.clear();
@@ -285,10 +281,9 @@ void Mesh::setTwins(size_t numHalfEdges, size_t indexH) {
       Twinless.remove(initialEdge->index());
 
       // Target, Next, Prev, Twin, Poly, Index
-      m_halfEdges.append(
-          HalfEdge(initialEdge->prev()->target(),
-                   QVector3D(((double)rand() / (RAND_MAX)), 0.0, 0.0), nullptr,
-                   nullptr, initialEdge, nullptr, indexH));
+      m_halfEdges.append(HalfEdge(initialEdge->prev()->target(),
+                                  QVector3D(1., 0.0, 0.0), nullptr, nullptr,
+                                  initialEdge, nullptr, indexH));
       startBoundaryLoop = indexH;
       // Twin of initialEdge should be assigned AFTER the central while loop!
       indexH++;
@@ -306,8 +301,7 @@ void Mesh::setTwins(size_t numHalfEdges, size_t indexH) {
 
         // Target, Next, Prev, Twin, Poly, Index
         m_halfEdges.append(HalfEdge(
-            currentEdge->prev()->target(),
-            QVector3D(((double)rand() / (RAND_MAX)), 0.0, 0.0), nullptr,
+            currentEdge->prev()->target(), QVector3D(1., 0.0, 0.0), nullptr,
             &m_halfEdges[indexH - 1], currentEdge, nullptr, indexH));
         m_halfEdges[indexH - 1].setNext(&m_halfEdges[indexH]);
 

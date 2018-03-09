@@ -21,7 +21,7 @@ SOURCES += main.cpp \
     objfile.cpp \
     halfedge.cpp \
     subdiv.cpp \
-    mousehandler.cpp
+    meshrenderable.cpp
 
 HEADERS += \
     window.h \
@@ -32,7 +32,7 @@ HEADERS += \
     mesh.h \
     objfile.h \
     subdiv.h \
-    mousehandler.h
+    meshrenderable.h
 
 RESOURCES += \
     resources.qrc
