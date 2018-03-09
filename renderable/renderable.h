@@ -7,8 +7,7 @@
 #include <memory>
 #include <vector>
 
-#include "mesh.h"
-#include "vertex.h"
+#include "../mesh/mesh.h"
 
 class Renderable {
  public:

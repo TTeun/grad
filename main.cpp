@@ -1,9 +1,8 @@
-#include <QGuiApplication>
-#include "window.h"
+#include <QApplication>
+#include "mainwindow.h"
 
-int main(int argc, char *argv[])
-{
-  QGuiApplication app(argc, argv);
+int main(int argc, char* argv[]) {
+  QApplication app(argc, argv);
 
   // Set OpenGL Version information
   // Note: This format must be set before show() is called.
@@ -13,7 +12,7 @@ int main(int argc, char *argv[])
   format.setVersion(3, 3);
 
   // Set the window up
-  Window window;
+  MainWindow window;
   window.setFormat(format);
   window.resize(QSize(800, 600));
   window.show();

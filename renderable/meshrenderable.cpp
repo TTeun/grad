@@ -5,6 +5,8 @@ MeshRenderable::MeshRenderable() : Renderable() {}
 MeshRenderable::~MeshRenderable() {}
 
 void MeshRenderable::fillCoords() {
+  m_data->clear();
+  m_indices->clear();
   unsigned int index = 0;
   auto const faces = m_mesh->faces();
   HalfEdge* currentEdge;

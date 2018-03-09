@@ -1,7 +1,6 @@
 #ifndef HALFEDGE
 #define HALFEDGE
 
-#include <QDebug>
 #include <QVector2D>
 
 #include "vertex.h"

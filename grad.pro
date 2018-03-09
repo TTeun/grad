@@ -6,32 +6,38 @@
 
 QT       += core gui
 
-TARGET = 1_BasicRendering
+TARGET = GradMesh
 CONFIG   -= app_bundle
+
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TEMPLATE = app
 
 SOURCES += main.cpp \
-    window.cpp \
-    renderable.cpp \
-    face.cpp \
-    mesh.cpp \
-    vertex.cpp \
+    renderable/renderable.cpp \
+    mesh/face.cpp \
+    mesh/mesh.cpp \
+    mesh/vertex.cpp \
     objfile.cpp \
-    halfedge.cpp \
+    mesh/halfedge.cpp \
     subdiv.cpp \
-    meshrenderable.cpp
+    renderable/meshrenderable.cpp \
+    mainwindow.cpp \
+    controlwidget.cpp \
+    mesh/meshhandler.cpp
 
 HEADERS += \
-    window.h \
-    vertex.h \
-    renderable.h \
-    halfedge.h \
-    face.h \
-    mesh.h \
+    mesh/vertex.h \
+    renderable/renderable.h \
+    mesh/halfedge.h \
+    mesh/face.h \
+    mesh/mesh.h \
     objfile.h \
     subdiv.h \
-    meshrenderable.h
+    renderable/meshrenderable.h \
+    mainwindow.h \
+    controlwidget.h \
+    mesh/meshhandler.h
 
 RESOURCES += \
     resources.qrc
@@ -39,3 +45,6 @@ RESOURCES += \
 DISTFILES +=
 
 CONFIG += c++14
+
+FORMS += \
+    controlwidget.ui

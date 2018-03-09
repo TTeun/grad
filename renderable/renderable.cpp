@@ -11,9 +11,7 @@ Renderable::Renderable()
           new QOpenGLBuffer(QOpenGLBuffer(QOpenGLBuffer::VertexBuffer))),
       m_indexBuffer(
           new QOpenGLBuffer(QOpenGLBuffer(QOpenGLBuffer::IndexBuffer))) {
-  setRenderMode(static_cast<int>(RenderMode::SURFACE) |
-                static_cast<int>(RenderMode::POINTS) |
-                static_cast<int>(RenderMode::LINES));
+  setRenderMode(static_cast<int>(RenderMode::SURFACE));
 }
 
 Renderable::~Renderable() {

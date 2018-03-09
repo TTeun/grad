@@ -6,29 +6,32 @@
 #include <QOpenGLWindow>
 #include <vector>
 
-#include "meshrenderable.h"
+#include "controlwidget.h"
+#include "mesh/meshhandler.h"
+#include "renderable/meshrenderable.h"
 
-class Window : public QOpenGLWindow, protected QOpenGLFunctions_4_1_Core {
+class MainWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_1_Core {
   Q_OBJECT
 
  public:
-  Window();
+  MainWindow();
+  ~MainWindow();
 
  protected slots:
   void cleanUp();
   void mousePressEvent(QMouseEvent* event);
+
+ signals:
+  void aboutToClose();
 
  private:
   void initializeGL();
   void initMembers();
   void resizeGL(int width, int height);
   void paintGL();
-  void buildMeshes();
 
-  size_t ccSteps = 2;
-  size_t m_currentMeshIndex;
-  std::vector<std::unique_ptr<Mesh>> m_meshVector;
-  std::unique_ptr<MeshRenderable> m_meshRenderable;
+  std::unique_ptr<MeshHandler> m_meshHandler;
+  std::unique_ptr<ControlWidget> m_controlWidget;
 };
 
 #endif  // WINDOW_H

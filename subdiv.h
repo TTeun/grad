@@ -1,7 +1,7 @@
 #ifndef SUBIV_H
 #define SUBIV_H
 
-#include "mesh.h"
+#include "mesh/mesh.h"
 
 class Subdiv {
  private:
