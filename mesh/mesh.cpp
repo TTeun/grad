@@ -169,12 +169,13 @@ void Mesh::copy(Mesh const* mesh) {
   for (size_t es = 0; es < numEdges; ++es) {
     currentEdge = &mesh->m_halfEdges[es];
     m_halfEdges.append(HalfEdge(nullptr,
-                                QVector3D(1., 0.0, 0.0),
+                                currentEdge->colour(),
                                 nullptr,
                                 nullptr,
                                 nullptr,
                                 nullptr,
                                 currentEdge->index(),
+                                currentEdge->isColourDiscontinuous(),
                                 currentEdge->sharpness(),
                                 currentEdge->colGrad()));
     if (currentEdge->index() != es) qDebug() << "Edge index mismatch";
@@ -210,11 +211,65 @@ QVector<Face>& Mesh::faces() { return m_faces; }
 QVector<HalfEdge>& Mesh::halfEdges() { return m_halfEdges; }
 
 bool Mesh::checkMesh() const {
-  //  for (auto& edge : m_halfEdges) {
-  //    assert(edge.next()->prev() == &edge);
-  //    assert(edge.prev()->next() == &edge);
-  //    assert(edge.twin()->twin() == &edge);
-  //  }
+  assert(m_halfEdges.back().index() == m_halfEdges.size() - 1);
+  assert(m_vertices.back().index() == m_vertices.size() - 1);
+  assert(m_faces.back().index() == m_faces.size() - 1);
+
+  for (Face const& face : m_faces) {
+    assert(face.side());
+    assert(face.side() == &m_halfEdges[face.side()->index()]);
+    assert(face.index() == (&face - &m_faces[0]));
+  }
+
+  for (HalfEdge const& edge : m_halfEdges) {
+    assert(edge.next());
+    assert(edge.twin());
+    assert(edge.prev());
+    assert(edge.target());
+
+    assert(edge.next() == &m_halfEdges[edge.next()->index()]);
+    assert(edge.twin() == &m_halfEdges[edge.twin()->index()]);
+    assert(edge.prev() == &m_halfEdges[edge.prev()->index()]);
+    assert(edge.target() == &m_vertices[edge.target()->index()]);
+
+    assert(edge.index() == (&edge - &m_halfEdges[0]));
+  }
+
+  for (Vertex const& vtx : m_vertices) {
+    assert(vtx.out());
+
+    assert(vtx.out() == &m_halfEdges[vtx.out()->index()]);
+
+    assert(vtx.index() == (&vtx - &m_vertices[0]));
+  }
+
+  HalfEdge* currentEdge;
+  for (Vertex const& vtx : m_vertices) {
+    assert(vtx.out()->twin()->target() == &vtx);
+    assert(vtx.out()->prev()->target() == &vtx);
+
+    currentEdge = vtx.out();
+    for (size_t i = 0; i != vtx.val(); ++i)
+      currentEdge = currentEdge->twin()->next();  // Taking some walks around a vertex
+
+    assert(currentEdge == vtx.out());
+
+    for (size_t i = 0; i != vtx.val(); ++i) currentEdge = currentEdge->prev()->twin();
+  }
+
+  for (HalfEdge const& edge : m_halfEdges) {
+    assert(edge.twin()->twin() == &edge);
+    assert(edge.prev()->next() == &edge);
+    assert(edge.next()->prev() == &edge);
+  }
+
+  for (Face const& face : m_faces) {
+    currentEdge = face.side();
+    for (size_t i = 0; i != face.val(); ++i) {
+      assert(currentEdge->polygon() == &face);
+      currentEdge = currentEdge->next();
+    }
+  }
   return true;
 }
 

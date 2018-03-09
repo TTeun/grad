@@ -10,6 +10,7 @@ HalfEdge::HalfEdge()
       m_twin(nullptr),
       m_polygon(nullptr),
       m_index(std::numeric_limits<unsigned int>::max()),
+      m_isColourDiscontinuous(false),
       m_sharpness(0),
       m_colGrad(QVector2D(0.0, 0.0)) {}
 
@@ -20,6 +21,7 @@ HalfEdge::HalfEdge(Vertex*          target,
                    HalfEdge*        twin,
                    Face*            polygon,
                    unsigned int     index,
+                   bool             isColourDiscontinuous,
                    float            sharpness)
     : m_target(target),
       m_colour(std::move(colour)),
@@ -28,6 +30,7 @@ HalfEdge::HalfEdge(Vertex*          target,
       m_twin(twin),
       m_polygon(polygon),
       m_index(index),
+      m_isColourDiscontinuous(isColourDiscontinuous),
       m_sharpness(sharpness),
       m_colGrad(QVector2D(0.0, 0.0)) {}
 
@@ -38,6 +41,7 @@ HalfEdge::HalfEdge(Vertex*          target,
                    HalfEdge*        twin,
                    Face*            polygon,
                    unsigned int     index,
+                   bool             isColourDiscontinuous,
                    float            sharpness,
                    QVector2D const& colGrad)
 
@@ -48,6 +52,7 @@ HalfEdge::HalfEdge(Vertex*          target,
       m_twin(twin),
       m_polygon(polygon),
       m_index(index),
+      m_isColourDiscontinuous(isColourDiscontinuous),
       m_sharpness(sharpness),
       m_colGrad(colGrad) {}
 
@@ -57,7 +62,10 @@ void HalfEdge::setTarget(Vertex* target) { m_target = target; }
 
 HalfEdge* HalfEdge::next() const { return m_next; }
 
-void HalfEdge::setNext(HalfEdge* next) { m_next = next; }
+void HalfEdge::setNext(HalfEdge* next) {
+  m_next       = next;
+  next->m_prev = this;
+}
 
 HalfEdge* HalfEdge::prev() const { return m_prev; }
 
@@ -65,7 +73,10 @@ void HalfEdge::setPrev(HalfEdge* prev) { m_prev = prev; }
 
 HalfEdge* HalfEdge::twin() const { return m_twin; }
 
-void HalfEdge::setTwin(HalfEdge* twin) { m_twin = twin; }
+void HalfEdge::setTwin(HalfEdge* twin) {
+  m_twin       = twin;
+  twin->m_twin = this;
+}
 
 Face* HalfEdge::polygon() const { return m_polygon; }
 
@@ -119,6 +130,12 @@ double HalfEdge::distanceToPoint(const QVector2D& mousePoint) const {
   dir.normalize();
   point = point - d * dir;
   return point.length();
+}
+
+bool HalfEdge::isColourDiscontinuous() const { return m_isColourDiscontinuous; }
+
+void HalfEdge::setIsColourDiscontinuous(bool colourDiscontinuous) {
+  m_isColourDiscontinuous = colourDiscontinuous;
 }
 
 void HalfEdge::setColour(const QVector3D& colour) { m_colour = colour; }

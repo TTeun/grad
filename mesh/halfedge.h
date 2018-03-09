@@ -18,7 +18,8 @@ class HalfEdge {
            HalfEdge*        twin,
            Face*            polygon,
            unsigned int     index,
-           float            sharpness = 0);
+           bool             isColourDiscontinuous = false,
+           float            sharpness             = 0);
 
   HalfEdge(Vertex*          target,
            QVector3D const& colour,
@@ -27,6 +28,7 @@ class HalfEdge {
            HalfEdge*        twin,
            Face*            polygon,
            unsigned int     index,
+           bool             isColourDiscontinuous,
            float            sharpness,
            QVector2D const& colGrad);
 
@@ -37,6 +39,7 @@ class HalfEdge {
   void setPolygon(Face* polygon);
   void setIndex(unsigned int index);
   void setSharpness(float sharpness);
+  void setIsColourDiscontinuous(bool colourDiscontinuous);
   void setColGrad(const QVector2D& colGrad);
   void setColour(const QVector3D& colour);
 
@@ -47,6 +50,7 @@ class HalfEdge {
   Face*        polygon() const;
   unsigned int index() const;
   float        sharpness() const;
+  bool         isColourDiscontinuous() const;
   QVector2D    colGrad() const;
   QVector3D    colour() const;
 
@@ -68,6 +72,7 @@ class HalfEdge {
   Face*        m_polygon;
   unsigned int m_index;
   float        m_sharpness;
+  bool         m_isColourDiscontinuous;
   QVector2D    m_colGrad;
 };
 

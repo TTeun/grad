@@ -17,7 +17,8 @@ void buildNewVertices(Mesh const* oldMesh, Mesh* newMesh) {
   const auto& oldVertices  = oldMesh->vertices();
 
   const size_t numOldVertices = oldVertices.size();
-  auto&        newVertices    = newMesh->vertices();
+
+  auto& newVertices = newMesh->vertices();
 
   for (auto const& vert : oldVertices) {
     newVertices.append(Vertex(vert.coords(), nullptr, vert.val(), vert.index()));
@@ -166,51 +167,57 @@ void Subdiv::subdivideCatmullClark(Mesh const* oldMesh, Mesh* newMesh) {
   buildNewHalfEdges(oldMesh, newMesh);
   buildNewFaces(oldMesh, newMesh);
 
-  assert(newMesh->checkMesh());
+  //  assert(newMesh->checkMesh());
 }
 
 void Subdiv::subdivideTernary(const Mesh* oldMesh, Mesh* newMesh) {
-  size_t k, l;
-  size_t vertCount = oldMesh->vertices().size();
-  size_t edgeCount = oldMesh->halfEdges().size();
-  size_t faceCount = oldMesh->faces().size();
+  auto const& oldFaces     = oldMesh->faces();
+  auto const& oldHalfEdges = oldMesh->halfEdges();
+  auto const& oldVertices  = oldMesh->vertices();
 
-  size_t sumFaceVal   = 0;
-  size_t newFaceCount = 0;
+  size_t const numOldFaces     = oldFaces.size();
+  size_t const numOldHalfEdges = oldHalfEdges.size();
+  size_t const numOldVertices  = oldVertices.size();
 
-  for (k = 0; k < faceCount; ++k) {
-    sumFaceVal += oldMesh->faces()[k].val();
-    newFaceCount += 1 + 2 * oldMesh->faces()[k].val();
+  auto& newFaces     = newMesh->faces();
+  auto& newHalfEdges = newMesh->halfEdges();
+  auto& newVertices  = newMesh->vertices();
+
+  size_t sumFaceVal  = 0;
+  size_t numNewFaces = 0;
+
+  for (size_t k = 0; k < numOldFaces; ++k) {
+    sumFaceVal += oldFaces[k].val();
+    numNewFaces += 1 + 2 * oldFaces[k].val();
   }
 
-  size_t newVertCount = vertCount + edgeCount + sumFaceVal;
-  newMesh->vertices().clear();
-  newMesh->vertices().reserve(newVertCount);
+  size_t newnumOldVertices = numOldVertices + numOldHalfEdges + sumFaceVal;
+  newVertices.clear();
+  newVertices.reserve(newnumOldVertices);
 
-  for (k = 0; k < vertCount; ++k)
-    newMesh->vertices().push_back(
-        oldMesh->vertices()[k]);  // out pointer is nonsense at this point
+  for (size_t k = 0; k < numOldVertices; ++k)
+    newVertices.push_back(oldVertices[k]);  // out pointer is nonsense at this point
 
   HalfEdge* twinEdge;
-  for (HalfEdge const& edge : oldMesh->halfEdges()) {
+  for (HalfEdge const& edge : oldHalfEdges) {
     twinEdge = edge.twin();
-    newMesh->vertices().push_back(Vertex(twinEdge->target()->coords() + edge.colGrad(),
-                                         nullptr,
-                                         4,
-                                         vertCount + edge.index(),
-                                         0));
+    newVertices.push_back(Vertex(twinEdge->target()->coords() + edge.colGrad(),
+                                 nullptr,
+                                 4,
+                                 numOldVertices + edge.index(),
+                                 0));
   }
 
   float     d1, d2, N1, N2, V01, V02;  // See Kosinka et. al. paper on grad mesh for these
   QVector2D V0, V1, V2, D1, D2, C;     // V1 ---- V0 ---- V2
   HalfEdge const* currentEdge;
   QVector2D       newPosition;
-  size_t          vertIndex = vertCount + edgeCount;
+  size_t          vertIndex = numOldVertices + numOldHalfEdges;
 
-  for (Face const& face : oldMesh->faces()) {
+  for (Face const& face : oldFaces) {
     currentEdge = face.side();
     C           = face.center();
-    for (l = 0; l < face.val(); ++l) {
+    for (size_t l = 0; l < face.val(); ++l) {
       V1 = currentEdge->prev()->target()->coords();
       V0 = currentEdge->target()->coords();
       V2 = currentEdge->next()->target()->coords();
@@ -230,42 +237,40 @@ void Subdiv::subdivideTernary(const Mesh* oldMesh, Mesh* newMesh) {
                     d1 * (1 - d2) * (V0 + V01 * D1 / (2 * N1)) +
                     d2 * (1 - d1) * (V0 + V02 * D2 / (2 * N2));
 
-      newMesh->vertices().push_back(Vertex(newPosition, nullptr, 4, vertIndex, 0));
+      newVertices.push_back(Vertex(newPosition, nullptr, 4, vertIndex, 0));
       currentEdge = currentEdge->next();
       ++vertIndex;
     }
   }
 
-  size_t newEdgeCount = 3 * edgeCount + 6 * sumFaceVal;
-  newMesh->halfEdges().clear();
-  newMesh->halfEdges().reserve(newEdgeCount);
+  size_t newnumOldHalfEdges = 3 * numOldHalfEdges + 6 * sumFaceVal;
+  newHalfEdges.clear();
+  newHalfEdges.reserve(newnumOldHalfEdges);
 
-  for (k = 0; k < edgeCount; ++k) {
-    currentEdge = &oldMesh->halfEdges()[k];
-    newMesh->halfEdges().push_back(
-        HalfEdge(&newMesh->vertices()[vertCount + currentEdge->index()],
-                 currentEdge->twin()->colour(),
-                 nullptr,
-                 nullptr,
-                 nullptr,
-                 nullptr,
-                 3 * k));
-    newMesh->halfEdges().push_back(
-        HalfEdge(&newMesh->vertices()[vertCount + currentEdge->twin()->index()],
+  for (size_t k = 0; k < numOldHalfEdges; ++k) {
+    currentEdge = &oldHalfEdges[k];
+    newHalfEdges.push_back(HalfEdge(&newVertices[numOldVertices + currentEdge->index()],
+                                    currentEdge->prev()->colour(),
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    3 * k));
+    newHalfEdges.push_back(
+        HalfEdge(&newVertices[numOldVertices + currentEdge->twin()->index()],
                  currentEdge->colour(),
                  nullptr,
                  nullptr,
                  nullptr,
                  nullptr,
                  3 * k + 1));
-    newMesh->halfEdges().push_back(
-        HalfEdge(&newMesh->vertices()[currentEdge->target()->index()],
-                 currentEdge->colour(),
-                 nullptr,
-                 nullptr,
-                 nullptr,
-                 nullptr,
-                 3 * k + 2));
+    newHalfEdges.push_back(HalfEdge(&newVertices[currentEdge->target()->index()],
+                                    currentEdge->colour(),
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    3 * k + 2));
 
     // /|    /|
     //  |     |  2
@@ -279,117 +284,108 @@ void Subdiv::subdivideTernary(const Mesh* oldMesh, Mesh* newMesh) {
   }
 
   size_t twinIndex;
-  for (k = 0; k < edgeCount; ++k) {
-    currentEdge = &oldMesh->halfEdges()[k];
+  for (size_t k = 0; k < numOldHalfEdges; ++k) {
+    currentEdge = &oldHalfEdges[k];
     twinIndex   = currentEdge->twin()->index();
-    newMesh->halfEdges()[3 * k].setTwin(&newMesh->halfEdges()[3 * twinIndex + 2]);
-    newMesh->halfEdges()[3 * k + 1].setTwin(&newMesh->halfEdges()[3 * twinIndex + 1]);
-    newMesh->halfEdges()[3 * k + 2].setTwin(&newMesh->halfEdges()[3 * twinIndex]);
+    newHalfEdges[3 * k].setTwin(&newHalfEdges[3 * twinIndex + 2]);
+    newHalfEdges[3 * k + 1].setTwin(&newHalfEdges[3 * twinIndex + 1]);
+    newHalfEdges[3 * k + 2].setTwin(&newHalfEdges[3 * twinIndex]);
 
-    newMesh->halfEdges()[3 * k].setPrev(
-        &newMesh->halfEdges()[3 * currentEdge->prev()->index() + 2]);
-    newMesh->halfEdges()[3 * k + 2].setNext(
-        &newMesh->halfEdges()[3 * currentEdge->next()->index()]);
+    newHalfEdges[3 * k].setPrev(&newHalfEdges[3 * currentEdge->prev()->index() + 2]);
+    newHalfEdges[3 * k + 2].setNext(&newHalfEdges[3 * currentEdge->next()->index()]);
 
     if (not currentEdge->polygon()) {
-      newMesh->halfEdges()[3 * k].setNext(&newMesh->halfEdges()[3 * k + 1]);
-      newMesh->halfEdges()[3 * k + 1].setNext(&newMesh->halfEdges()[3 * k + 2]);
+      newHalfEdges[3 * k].setNext(&newHalfEdges[3 * k + 1]);
+      newHalfEdges[3 * k + 1].setNext(&newHalfEdges[3 * k + 2]);
     }
 
     twinEdge = currentEdge->twin();
     if (twinEdge->index() < currentEdge->index()) {
-      newMesh->vertices()[twinEdge->target()->index()].setOut(
-          &newMesh->halfEdges()[3 * k]);
-      newMesh->vertices()[vertCount + currentEdge->index()].setOut(
-          &newMesh->halfEdges()[3 * k + 1]);
-      newMesh->vertices()[vertCount + twinIndex].setOut(&newMesh->halfEdges()[3 * k + 2]);
+      newVertices[twinEdge->target()->index()].setOut(&newHalfEdges[3 * k]);
+      newVertices[numOldVertices + currentEdge->index()].setOut(&newHalfEdges[3 * k + 1]);
+      newVertices[numOldVertices + twinIndex].setOut(&newHalfEdges[3 * k + 2]);
     }
   }
 
   size_t n;
-  size_t edgeIndex = 3 * edgeCount;
-  vertIndex        = vertCount + edgeCount;
+  size_t edgeIndex = 3 * numOldHalfEdges;
+  vertIndex        = numOldVertices + numOldHalfEdges;
   size_t currentIndex;
   size_t nextIndex;
   size_t edgesAdded;
   size_t faceIndex = 0;
 
-  newMesh->faces().clear();
-  newMesh->faces().reserve(newFaceCount);
+  newFaces.clear();
+  newFaces.reserve(numNewFaces);
 
-  for (Face const& face : oldMesh->faces()) {
+  for (Face const& face : oldFaces) {
     n           = face.val();
     currentEdge = face.side();
 
     // Now begins the bookkeeping nightmare of the ternary subdivision step that creates
     // 2n + 1 new faces per old face
-    for (l = 0; l < n; ++l) {
+    for (size_t l = 0; l < n; ++l) {
       currentIndex = currentEdge->index();
       nextIndex    = currentEdge->next()->index();
       twinIndex    = currentEdge->twin()->index();
 
-      newMesh->halfEdges().push_back(HalfEdge(&newMesh->vertices()[vertIndex],
-                                              currentEdge->colour(),
-                                              nullptr,
-                                              nullptr,
-                                              nullptr,
-                                              nullptr,
-                                              edgeIndex));
-      newMesh->halfEdges().push_back(HalfEdge(&newMesh->vertices()[vertIndex],
-                                              currentEdge->colour(),
-                                              nullptr,
-                                              nullptr,
-                                              nullptr,
-                                              nullptr,
-                                              edgeIndex + 1));
-      newMesh->halfEdges().push_back(HalfEdge(&newMesh->vertices()[vertCount + nextIndex],
-                                              currentEdge->colour(),
-                                              nullptr,
-                                              nullptr,
-                                              nullptr,
-                                              nullptr,
-                                              edgeIndex + 2));
-      newMesh->halfEdges().push_back(HalfEdge(&newMesh->vertices()[vertIndex],
-                                              currentEdge->colour(),
-                                              nullptr,
-                                              nullptr,
-                                              nullptr,
-                                              nullptr,
-                                              edgeIndex + 3));
-      newMesh->halfEdges().push_back(HalfEdge(&newMesh->vertices()[vertCount + twinIndex],
-                                              currentEdge->colour(),
-                                              nullptr,
-                                              nullptr,
-                                              nullptr,
-                                              nullptr,
-                                              edgeIndex + 4));
-      newMesh->halfEdges().push_back(HalfEdge(&newMesh->vertices()[vertIndex],
-                                              currentEdge->colour(),
-                                              nullptr,
-                                              nullptr,
-                                              nullptr,
-                                              nullptr,
-                                              edgeIndex + 5));
+      newHalfEdges.push_back(HalfEdge(&newVertices[vertIndex],
+                                      currentEdge->colour(),
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      edgeIndex));
+      newHalfEdges.push_back(HalfEdge(&newVertices[vertIndex],
+                                      currentEdge->colour(),
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      edgeIndex + 1));
+      newHalfEdges.push_back(HalfEdge(&newVertices[numOldVertices + nextIndex],
+                                      currentEdge->colour(),
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      edgeIndex + 2));
+      newHalfEdges.push_back(HalfEdge(&newVertices[vertIndex],
+                                      currentEdge->colour(),
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      edgeIndex + 3));
+      newHalfEdges.push_back(HalfEdge(&newVertices[numOldVertices + twinIndex],
+                                      currentEdge->colour(),
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      edgeIndex + 4));
+      newHalfEdges.push_back(HalfEdge(&newVertices[vertIndex],
+                                      currentEdge->colour(),
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      edgeIndex + 5));
 
-      newMesh->halfEdges()[edgeIndex + 1].setNext(&newMesh->halfEdges()[edgeIndex + 2]);
-      newMesh->halfEdges()[3 * nextIndex].setNext(&newMesh->halfEdges()[edgeIndex + 3]);
-      newMesh->halfEdges()[edgeIndex + 3].setNext(&newMesh->halfEdges()[edgeIndex + 4]);
-      newMesh->halfEdges()[3 * currentIndex + 1].setNext(
-          &newMesh->halfEdges()[edgeIndex + 5]);
-      newMesh->halfEdges()[edgeIndex + 2].setNext(
-          &newMesh->halfEdges()[3 * nextIndex + 1]);
-      newMesh->halfEdges()[edgeIndex + 4].setNext(
-          &newMesh->halfEdges()[3 * currentIndex + 2]);
+      newHalfEdges[edgeIndex + 1].setNext(&newHalfEdges[edgeIndex + 2]);
+      newHalfEdges[3 * nextIndex].setNext(&newHalfEdges[edgeIndex + 3]);
+      newHalfEdges[edgeIndex + 3].setNext(&newHalfEdges[edgeIndex + 4]);
+      newHalfEdges[3 * currentIndex + 1].setNext(&newHalfEdges[edgeIndex + 5]);
+      newHalfEdges[edgeIndex + 2].setNext(&newHalfEdges[3 * nextIndex + 1]);
+      newHalfEdges[edgeIndex + 4].setNext(&newHalfEdges[3 * currentIndex + 2]);
 
-      newMesh->halfEdges()[edgeIndex + 2].setTwin(&newMesh->halfEdges()[edgeIndex + 3]);
-      newMesh->halfEdges()[edgeIndex + 4].setTwin(&newMesh->halfEdges()[edgeIndex + 5]);
+      newHalfEdges[edgeIndex + 2].setTwin(&newHalfEdges[edgeIndex + 3]);
+      newHalfEdges[edgeIndex + 4].setTwin(&newHalfEdges[edgeIndex + 5]);
 
-      newMesh->vertices()[vertIndex].setOut(&newMesh->halfEdges()[edgeIndex + 2]);
+      newVertices[vertIndex].setOut(&newHalfEdges[edgeIndex + 2]);
 
-      newMesh->faces().push_back(
-          Face(&newMesh->halfEdges()[edgeIndex + 1], 4, faceIndex));
-      newMesh->faces().push_back(
-          Face(&newMesh->halfEdges()[edgeIndex + 4], 4, faceIndex + 1));
+      newFaces.push_back(Face(&newHalfEdges[edgeIndex + 1], 4, faceIndex));
+      newFaces.push_back(Face(&newHalfEdges[edgeIndex + 4], 4, faceIndex + 1));
 
       faceIndex += 2;
       ++vertIndex;
@@ -400,33 +396,30 @@ void Subdiv::subdivideTernary(const Mesh* oldMesh, Mesh* newMesh) {
     edgesAdded = 6 * n;
     edgeIndex -= edgesAdded;
 
-    newMesh->faces().push_back(Face(&newMesh->halfEdges()[edgeIndex], n, faceIndex));
+    newFaces.push_back(Face(&newHalfEdges[edgeIndex], n, faceIndex));
     ++faceIndex;
 
-    newMesh->halfEdges()[edgeIndex].setTwin(
-        &newMesh->halfEdges()[edgeIndex + 6 * (n - 1) + 1]);
-    newMesh->halfEdges()[edgeIndex + 5].setNext(
-        &newMesh->halfEdges()[edgeIndex + 6 * (n - 1) + 1]);
-    newMesh->halfEdges()[edgeIndex + 6 * (n - 1)].setNext(
-        &newMesh->halfEdges()[edgeIndex]);
+    newHalfEdges[edgeIndex].setTwin(&newHalfEdges[edgeIndex + 6 * (n - 1) + 1]);
+    newHalfEdges[edgeIndex + 5].setNext(&newHalfEdges[edgeIndex + 6 * (n - 1) + 1]);
+    newHalfEdges[edgeIndex + 6 * (n - 1)].setNext(&newHalfEdges[edgeIndex]);
 
-    for (l = 0; l < n - 1; ++l) {
-      newMesh->halfEdges()[edgeIndex + 1].setTwin(&newMesh->halfEdges()[edgeIndex + 6]);
-      newMesh->halfEdges()[edgeIndex + 11].setNext(&newMesh->halfEdges()[edgeIndex + 1]);
-      newMesh->halfEdges()[edgeIndex].setNext(&newMesh->halfEdges()[edgeIndex + 6]);
+    for (size_t l = 0; l < n - 1; ++l) {
+      newHalfEdges[edgeIndex + 1].setTwin(&newHalfEdges[edgeIndex + 6]);
+      newHalfEdges[edgeIndex + 11].setNext(&newHalfEdges[edgeIndex + 1]);
+      newHalfEdges[edgeIndex].setNext(&newHalfEdges[edgeIndex + 6]);
       edgeIndex += 6;
     }
     edgeIndex += 6;
   }
 
   HalfEdge* mutableEdge;
-  for (size_t i = 0; i < newFaceCount; ++i) {
-    n           = newMesh->faces()[i].val();
-    mutableEdge = newMesh->faces()[i].side();
+  for (size_t i = 0; i < numNewFaces; ++i) {
+    n           = newFaces[i].val();
+    mutableEdge = newFaces[i].side();
     for (size_t j = 0; j < n; ++j) {
-      mutableEdge->setPolygon(&newMesh->faces()[i]);
+      mutableEdge->setPolygon(&newFaces[i]);
       mutableEdge = mutableEdge->next();
     }
   }
-  assert(newMesh->checkMesh());
+  //  assert(newMesh->checkMesh());
 }
