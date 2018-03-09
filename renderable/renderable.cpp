@@ -7,10 +7,8 @@ Renderable::Renderable()
       m_colourShader(new QOpenGLShaderProgram()),
       m_blackShader(new QOpenGLShaderProgram()),
       m_whiteShader(new QOpenGLShaderProgram()),
-      m_vertexBuffer(
-          new QOpenGLBuffer(QOpenGLBuffer(QOpenGLBuffer::VertexBuffer))),
-      m_indexBuffer(
-          new QOpenGLBuffer(QOpenGLBuffer(QOpenGLBuffer::IndexBuffer))) {
+      m_vertexBuffer(new QOpenGLBuffer(QOpenGLBuffer(QOpenGLBuffer::VertexBuffer))),
+      m_indexBuffer(new QOpenGLBuffer(QOpenGLBuffer(QOpenGLBuffer::IndexBuffer))) {
   setRenderMode(static_cast<int>(RenderMode::SURFACE));
 }
 
@@ -20,19 +18,15 @@ Renderable::~Renderable() {
   m_indexBuffer->destroy();
 }
 
+void Renderable::fillCoords() {}
+
 void Renderable::init() {
-  m_colourShader->addShaderFromSourceFile(QOpenGLShader::Vertex,
-                                          ":/shaders/vert.glsl");
-  m_colourShader->addShaderFromSourceFile(QOpenGLShader::Fragment,
-                                          ":/shaders/frag.glsl");
-  m_blackShader->addShaderFromSourceFile(QOpenGLShader::Vertex,
-                                         ":/shaders/vert_black.glsl");
-  m_blackShader->addShaderFromSourceFile(QOpenGLShader::Fragment,
-                                         ":/shaders/frag.glsl");
-  m_whiteShader->addShaderFromSourceFile(QOpenGLShader::Vertex,
-                                         ":/shaders/vert_white.glsl");
-  m_whiteShader->addShaderFromSourceFile(QOpenGLShader::Fragment,
-                                         ":/shaders/frag.glsl");
+  m_colourShader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/vert.glsl");
+  m_colourShader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/frag.glsl");
+  m_blackShader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/vert_black.glsl");
+  m_blackShader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/frag.glsl");
+  m_whiteShader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/vert_white.glsl");
+  m_whiteShader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/frag.glsl");
 
   m_colourShader->link();
   m_blackShader->link();
@@ -47,22 +41,19 @@ void Renderable::init() {
   m_indexBuffer->create();
   m_indexBuffer->bind();
   m_indexBuffer->setUsagePattern(QOpenGLBuffer::StaticDraw);
-  m_indexBuffer->allocate(m_indices->data(),
-                          m_indices->size() * sizeof(unsigned int));
+  m_indexBuffer->allocate(m_indices->data(), m_indices->size() * sizeof(unsigned int));
 
   m_vao.create();
   m_vao.bind();
   m_colourShader->enableAttributeArray(0);
   m_colourShader->enableAttributeArray(1);
   m_colourShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, 5 * sizeof(float));
-  m_colourShader->setAttributeBuffer(1, GL_FLOAT, 2 * sizeof(float), 3,
-                                     5 * sizeof(float));
+  m_colourShader->setAttributeBuffer(1, GL_FLOAT, 2 * sizeof(float), 3, 5 * sizeof(float));
 
   m_blackShader->enableAttributeArray(0);
   m_blackShader->enableAttributeArray(1);
   m_blackShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, 5 * sizeof(float));
-  m_blackShader->setAttributeBuffer(1, GL_FLOAT, 2 * sizeof(float), 3,
-                                    5 * sizeof(float));
+  m_blackShader->setAttributeBuffer(1, GL_FLOAT, 2 * sizeof(float), 3, 5 * sizeof(float));
 
   m_vao.release();
   m_vertexBuffer->release();
@@ -115,20 +106,15 @@ void Renderable::update() {
     m_vertexBuffer->bind();
     m_indexBuffer->bind();
     m_vertexBuffer->allocate(m_data->data(), m_data->size() * sizeof(float));
-    m_indexBuffer->allocate(m_indices->data(),
-                            m_indices->size() * sizeof(unsigned int));
+    m_indexBuffer->allocate(m_indices->data(), m_indices->size() * sizeof(unsigned int));
     m_vao.release();
   }
 }
 
-bool Renderable::coordsNeedToBeFilled() const {
-  return m_coordsNeedToBeFilled;
-}
+bool Renderable::coordsNeedToBeFilled() const { return m_coordsNeedToBeFilled; }
 
 void Renderable::setCoordsNeedToBeFilled(bool coordsNeedToBeFilled) {
   m_coordsNeedToBeFilled = coordsNeedToBeFilled;
 }
 
-void Renderable::setRenderMode(const int& renderMode) {
-  m_renderMode = renderMode;
-}
+void Renderable::setRenderMode(const int& renderMode) { m_renderMode = renderMode; }

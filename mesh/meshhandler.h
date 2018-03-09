@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "../renderable/meshrenderable.h"
+#include "../renderable/selectionrenderable.h"
 #include "mesh.h"
 
 class MeshHandler : public QObject {
@@ -19,21 +20,23 @@ class MeshHandler : public QObject {
   void render() const;
 
   size_t ccSteps() const;
-  void setCcSteps(const size_t& ccSteps);
+  void   setCcSteps(const size_t& ccSteps);
 
  public slots:
   void currentMeshIndexChanged(int newIndex);
+  void findClosest(QVector2D& mousePosition);
 
  signals:
   void hasChanged();
 
  private:
-  size_t m_ccSteps = 3;
+  size_t m_ccSteps          = 3;
   size_t m_currentMeshIndex = 0;
-  std::vector<std::unique_ptr<Mesh>> m_meshVector;
 
-  std::unique_ptr<MeshRenderable> m_meshRenderable;
-  std::unique_ptr<MeshRenderable> m_skeletonRenderable;
+  std::vector<std::unique_ptr<Mesh>>   m_meshVector;
+  std::unique_ptr<MeshRenderable>      m_meshRenderable;
+  std::unique_ptr<MeshRenderable>      m_skeletonRenderable;
+  std::unique_ptr<SelectionRenderable> m_selectionRenderable;
 };
 
 #endif  // MESHHANDLER_H

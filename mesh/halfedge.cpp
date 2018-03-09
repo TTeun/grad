@@ -144,6 +144,19 @@ QVector3D HalfEdge::endColour() const {
   return c / 8.;
 }
 
+double HalfEdge::distanceToPoint(QVector2D point) {
+  point = point - start();
+  QVector2D dir = end() - start();
+
+  float d = QVector2D::dotProduct(dir, point);
+  if (d < 0 || d > dir.lengthSquared())
+    return 10000.0f;
+
+  dir.normalize();
+  point = point - d * dir;
+  return point.length();
+}
+
 void HalfEdge::setColour(const QVector3D& colour) {
   m_colour = colour;
 }

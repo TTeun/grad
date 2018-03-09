@@ -8,6 +8,7 @@
 
 #include "controlwidget.h"
 #include "mesh/meshhandler.h"
+#include "mousehandler.h"
 #include "renderable/meshrenderable.h"
 
 class MainWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_1_Core {
@@ -19,7 +20,6 @@ class MainWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_1_Core {
 
  protected slots:
   void cleanUp();
-  void mousePressEvent(QMouseEvent* event);
 
  signals:
   void aboutToClose();
@@ -27,9 +27,15 @@ class MainWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_1_Core {
  private:
   void initializeGL();
   void initMembers();
+  void connectMembers();
   void resizeGL(int width, int height);
   void paintGL();
 
+  void mousePressEvent(QMouseEvent* event);
+  void mouseReleaseEvent(QMouseEvent* event);
+  void mouseMoveEvent(QMouseEvent* event);
+
+  std::unique_ptr<MouseHandler> m_mouseHandler;
   std::unique_ptr<MeshHandler> m_meshHandler;
   std::unique_ptr<ControlWidget> m_controlWidget;
 };

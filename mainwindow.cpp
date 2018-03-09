@@ -6,8 +6,11 @@
 #include <cassert>
 
 MainWindow::MainWindow()
-    : m_meshHandler(new MeshHandler(this)),
+    : m_mouseHandler(new MouseHandler(this)),
+      m_meshHandler(new MeshHandler(this)),
       m_controlWidget(new ControlWidget()) {
+  m_mouseHandler->setHeight(height());
+  m_mouseHandler->setWidth(width());
   m_controlWidget->show();
   qDebug() << "MainWindow constructed";
 }
@@ -22,6 +25,19 @@ void MainWindow::initializeGL() {
   assert(QObject::connect(m_controlWidget.get(), SIGNAL(aboutToClose()), this,
                           SLOT(close())));
 
+  glEnable(GL_PRIMITIVE_RESTART);
+  glPrimitiveRestartIndex(std::numeric_limits<unsigned int>::max());
+
+  glClearColor(1.f, 1.f, 1.f, 1.0f);
+  initMembers();
+  connectMembers();
+}
+
+void MainWindow::initMembers() {
+  m_meshHandler->init(QString("models/tri1.obj"));
+}
+
+void MainWindow::connectMembers() {
   assert(QObject::connect(m_controlWidget.get()->getUi()->meshIndexSpinBox,
                           SIGNAL(valueChanged(int)), this->m_meshHandler.get(),
                           SLOT(currentMeshIndexChanged(int))));
@@ -29,20 +45,13 @@ void MainWindow::initializeGL() {
   assert(QObject::connect(m_meshHandler.get(), SIGNAL(hasChanged()), this,
                           SLOT(update())));
 
-  glEnable(GL_PRIMITIVE_RESTART);
-  glPrimitiveRestartIndex(std::numeric_limits<unsigned int>::max());
-
-  glClearColor(1.f, 1.f, 1.f, 1.0f);
-  initMembers();
-}
-
-void MainWindow::initMembers() {
-  m_meshHandler->init(QString("models/tri1.obj"));
+  assert(QObject::connect(m_mouseHandler.get(), SIGNAL(clicked(QVector2D&)),
+                          m_meshHandler.get(), SLOT(findClosest(QVector2D&))));
 }
 
 void MainWindow::resizeGL(int width, int height) {
-  Q_UNUSED(width);
-  Q_UNUSED(height);
+  m_mouseHandler->setHeight(height);
+  m_mouseHandler->setWidth(width);
 }
 
 void MainWindow::paintGL() {
@@ -51,13 +60,18 @@ void MainWindow::paintGL() {
   m_meshHandler->render();
 }
 
-void MainWindow::cleanUp() {
-  qDebug() << "Clean up\n";
+void MainWindow::mousePressEvent(QMouseEvent* event) {
+  m_mouseHandler->mousePressEvent(event);
 }
 
-void MainWindow::mousePressEvent(QMouseEvent* event) {
-  QVector2D mousePt{static_cast<double>(event->x()) / width(),
-                    static_cast<double>(event->y()) / height()};
-  mousePt[0] = (mousePt[0] - 0.5) * 2.;
-  mousePt[1] = -(mousePt[1] - 0.5) * 2.;
+void MainWindow::mouseReleaseEvent(QMouseEvent* event) {
+  m_mouseHandler->mouseReleaseEvent(event);
+}
+
+void MainWindow::mouseMoveEvent(QMouseEvent* event) {
+  m_mouseHandler->mouseMoveEvent(event);
+}
+
+void MainWindow::cleanUp() {
+  qDebug() << "Clean up\n";
 }

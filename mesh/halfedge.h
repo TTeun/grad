@@ -54,6 +54,7 @@ class HalfEdge {
   QVector3D centerColour() const;
   QVector3D endColour() const;
 
+  double distanceToPoint(QVector2D point);
   inline QVector2D start() const { return m_twin->m_target->coords(); }
   inline QVector2D end() const { return m_target->coords(); }
   inline float length() const { return (start() - end()).length(); }

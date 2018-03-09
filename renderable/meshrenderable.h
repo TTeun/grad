@@ -1,6 +1,7 @@
 #ifndef MESHRENDERABLE_H
 #define MESHRENDERABLE_H
 
+#include "../mesh/mesh.h"
 #include "renderable.h"
 
 class MeshRenderable : public Renderable {
