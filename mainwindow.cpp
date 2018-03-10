@@ -33,7 +33,7 @@ void MainWindow::initializeGL() {
   connectMembers();
 }
 
-void MainWindow::initMembers() { m_meshHandler->init(QString("models/tri1.obj")); }
+void MainWindow::initMembers() { m_meshHandler->init(QString("models/square.obj")); }
 
 void MainWindow::connectMembers() {
   assert(QObject::connect(m_controlWidget.get()->getUi()->meshIndexSpinBox,

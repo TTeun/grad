@@ -6,6 +6,7 @@ MeshHandler::MeshHandler(QObject* parent)
       m_meshRenderable(new MeshRenderable()),
       m_skeletonRenderable(new MeshRenderable()),
       m_selectionRenderable(new SelectionRenderable()) {
+  m_ccSteps = 2;
   qDebug() << "MeshHandler constructed";
 }
 
@@ -18,6 +19,8 @@ void MeshHandler::init(const QString& path) {
   }
 
   m_meshRenderable->init();
+  m_meshRenderable->setRenderMode(static_cast<int>(Renderable::RenderMode::SURFACE) |
+                                  static_cast<int>(Renderable::RenderMode::POINTS));
   m_skeletonRenderable->init();
   m_selectionRenderable->init();
   m_skeletonRenderable->setRenderMode(static_cast<int>(Renderable::RenderMode::LINES));
@@ -27,7 +30,7 @@ void MeshHandler::init(const QString& path) {
 void MeshHandler::buildMeshes(size_t startIndex) {
   m_meshVector.resize(1);
 
-  m_meshVector.push_back(m_meshVector.back()->ternarySubdiv());
+  //  m_meshVector.push_back(m_meshVector.back()->ternarySubdiv());
 
   for (size_t i = startIndex; i < m_ccSteps; ++i) {
     m_meshVector.push_back(m_meshVector.back()->ccSubdiv());

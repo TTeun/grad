@@ -18,8 +18,7 @@ class HalfEdge {
            HalfEdge*        twin,
            Face*            polygon,
            unsigned int     index,
-           bool             isColourDiscontinuous = false,
-           float            sharpness             = 0);
+           float            sharpness = 0);
 
   HalfEdge(Vertex*          target,
            QVector3D const& colour,
@@ -28,31 +27,24 @@ class HalfEdge {
            HalfEdge*        twin,
            Face*            polygon,
            unsigned int     index,
-           bool             isColourDiscontinuous,
            float            sharpness,
            QVector2D const& colGrad);
 
   void setNext(HalfEdge* next);
-  void setTarget(Vertex* target);
   void setPrev(HalfEdge* prev);
   void setTwin(HalfEdge* twin);
   void setPolygon(Face* polygon);
-  void setIndex(unsigned int index);
   void setSharpness(float sharpness);
-  void setIsColourDiscontinuous(bool colourDiscontinuous);
   void setColGrad(const QVector2D& colGrad);
   void setColour(const QVector3D& colour);
 
-  Vertex*      target() const;
-  HalfEdge*    next() const;
-  HalfEdge*    prev() const;
-  HalfEdge*    twin() const;
-  Face*        polygon() const;
-  unsigned int index() const;
-  float        sharpness() const;
-  bool         isColourDiscontinuous() const;
-  QVector2D    colGrad() const;
-  QVector3D    colour() const;
+  HalfEdge* next() const;
+  HalfEdge* prev() const;
+  HalfEdge* twin() const;
+  Face*     polygon() const;
+  float     sharpness() const;
+  QVector2D colGrad() const;
+  QVector3D colour() const;
 
   QVector2D center() const;
   QVector3D centerColour() const;
@@ -63,6 +55,12 @@ class HalfEdge {
   QVector2D end() const { return m_target->coords(); }
   float     length() const { return (start() - end()).length(); }
 
+  unsigned int index() const;
+  void         setIndex(unsigned int index);
+
+  Vertex* target() const;
+  void    setTarget(Vertex* target);
+
  private:
   Vertex*      m_target;
   QVector3D    m_colour;
@@ -72,7 +70,6 @@ class HalfEdge {
   Face*        m_polygon;
   unsigned int m_index;
   float        m_sharpness;
-  bool         m_isColourDiscontinuous;
   QVector2D    m_colGrad;
 };
 

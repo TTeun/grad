@@ -16,17 +16,21 @@ void buildNewVertices(Mesh const* oldMesh, Mesh* newMesh) {
   const auto& oldHalfEdges = oldMesh->halfEdges();
   const auto& oldVertices  = oldMesh->vertices();
 
-  const size_t numOldVertices = oldVertices.size();
+  const size_t numOldVertices  = oldVertices.size();
+  const size_t numOldHalfEdges = oldHalfEdges.size();
 
-  auto& newVertices = newMesh->vertices();
+  auto& newVertices  = newMesh->vertices();
+  auto& newHalfEdges = newMesh->halfEdges();
 
   for (auto const& vert : oldVertices) {
-    newVertices.append(Vertex(vert.coords(), nullptr, vert.val(), vert.index()));
+    newVertices.append(Vertex(
+        vert.coords(), &newHalfEdges[vert.out()->index()], vert.val(), vert.index()));
   }
 
   size_t vertIndex = numOldVertices;
   for (auto const& edge : oldHalfEdges) {
-    newVertices.append(Vertex(edge.center(), nullptr, 0., vertIndex));
+    newVertices.append(Vertex(
+        edge.center(), &newHalfEdges[edge.index() + numOldHalfEdges], 0., vertIndex));
     ++vertIndex;
   }
 
@@ -47,14 +51,10 @@ void buildNewHalfEdges(Mesh const* oldMesh, Mesh* newMesh) {
   auto& newHalfEdges = newMesh->halfEdges();
   auto& newVertices  = newMesh->vertices();
 
-  size_t numNewEdges = 2 * numOldHalfEdges;
-  for (auto face : oldFaces) numNewEdges += 2 * face.val();
-  newHalfEdges.resize(numNewEdges);
-
   size_t edgeIndex = 0;
   for (auto const& edge : oldHalfEdges) {
     newHalfEdges[edgeIndex] =
-        HalfEdge(&newVertices[numOldVertices + edge.index()],
+        HalfEdge(&newVertices[numOldVertices + edgeIndex],
                  edge.centerColour(),
                  nullptr,
                  &newHalfEdges[edge.prev()->index() + numOldHalfEdges],
@@ -75,18 +75,20 @@ void buildNewHalfEdges(Mesh const* oldMesh, Mesh* newMesh) {
       setNext(&newHalfEdges[edgeIndex], &newHalfEdges[edgeIndex + numOldHalfEdges]);
     }
 
-    newVertices[newHalfEdges[edgeIndex].target()->index()].setOut(
-        newHalfEdges[edgeIndex].twin());
-    newVertices[newHalfEdges[edgeIndex + numOldHalfEdges].target()->index()].setOut(
-        newHalfEdges[edgeIndex + numOldHalfEdges].twin());
-
-    assert(edgeIndex == edge.index());
+    //    newVertices[newHalfEdges[edgeIndex].target()->index()].setOut(
+    //        newHalfEdges[edgeIndex].twin());
+    //    newVertices[newHalfEdges[edgeIndex + numOldHalfEdges].target()->index()].setOut(
+    //        newHalfEdges[edgeIndex + numOldHalfEdges].twin());
     ++edgeIndex;
   }
 
   edgeIndex = 2 * numOldHalfEdges;
   for (auto const& face : oldFaces) {
     auto currentEdge = face.side();
+
+    newVertices[numOldVertices + numOldHalfEdges + face.index()].setOut(
+        &newHalfEdges[edgeIndex + 1]);
+
     for (size_t i = 0; i != face.val(); ++i) {
       newHalfEdges[edgeIndex] =
           HalfEdge(&newVertices[numOldVertices + numOldHalfEdges + face.index()],
@@ -106,11 +108,6 @@ void buildNewHalfEdges(Mesh const* oldMesh, Mesh* newMesh) {
                    nullptr,
                    edgeIndex + 1);
 
-      newVertices[newHalfEdges[edgeIndex].target()->index()].setOut(
-          newHalfEdges[edgeIndex].twin());
-      newVertices[newHalfEdges[edgeIndex + 1].target()->index()].setOut(
-          newHalfEdges[edgeIndex + 1].twin());
-
       edgeIndex += 2;
       currentEdge = currentEdge->next();
     }
@@ -126,11 +123,6 @@ void buildNewFaces(Mesh const* oldMesh, Mesh* newMesh) {
   auto& newFaces     = newMesh->faces();
   auto& newHalfEdges = newMesh->halfEdges();
 
-  size_t numNewFaces = 0;
-
-  for (auto face : oldFaces) numNewFaces += face.val();
-  newFaces.resize(numNewFaces);
-
   size_t faceIndex = 0;
   size_t edgeIndex = 2 * numOldHalfEdges;
   for (auto const& face : oldFaces) {
@@ -138,7 +130,7 @@ void buildNewFaces(Mesh const* oldMesh, Mesh* newMesh) {
     auto   currentEdge     = face.side();
     for (size_t i = 0; i != face.val(); ++i) {
       newFaces[faceIndex + faceIndexOffSet] =
-          Face(&newHalfEdges[currentEdge->index()], 4, faceIndex + faceIndexOffSet);
+          Face(&newHalfEdges[edgeIndex], 4, faceIndex + faceIndexOffSet);
 
       newHalfEdges[edgeIndex].setPolygon(&newFaces[faceIndex + faceIndexOffSet]);
       newHalfEdges[edgeIndex + 1].setPolygon(
@@ -154,6 +146,11 @@ void buildNewFaces(Mesh const* oldMesh, Mesh* newMesh) {
 
       setNext(&newHalfEdges[currentEdge->index()], &newHalfEdges[edgeIndex]);
 
+      newHalfEdges[edgeIndex].next()->setPolygon(&newFaces[faceIndex + faceIndexOffSet]);
+      newHalfEdges[edgeIndex].prev()->setPolygon(&newFaces[faceIndex + faceIndexOffSet]);
+      newHalfEdges[edgeIndex + 1].next()->setPolygon(
+          &newFaces[faceIndex + (faceIndexOffSet + 1) % face.val()]);
+
       currentEdge = currentEdge->next();
       ++faceIndexOffSet;
       edgeIndex += 2;
@@ -161,13 +158,29 @@ void buildNewFaces(Mesh const* oldMesh, Mesh* newMesh) {
     faceIndex += face.val();
   }
 }
+void resizeFacesAndHalfEdges(Mesh const* oldMesh, Mesh* newMesh) {
+  const auto& oldFaces     = oldMesh->faces();
+  const auto& oldHalfEdges = oldMesh->halfEdges();
+
+  const size_t numOldHalfEdges = oldHalfEdges.size();
+
+  auto& newFaces     = newMesh->faces();
+  auto& newHalfEdges = newMesh->halfEdges();
+
+  size_t numNewFaces = 0;
+  for (auto face : oldFaces) numNewFaces += face.val();
+
+  newFaces.resize(numNewFaces);
+  newHalfEdges.resize(2 * numNewFaces + 2 * numOldHalfEdges);
+}
 
 void Subdiv::subdivideCatmullClark(Mesh const* oldMesh, Mesh* newMesh) {
+  resizeFacesAndHalfEdges(oldMesh, newMesh);
   buildNewVertices(oldMesh, newMesh);
   buildNewHalfEdges(oldMesh, newMesh);
   buildNewFaces(oldMesh, newMesh);
 
-  //  assert(newMesh->checkMesh());
+  assert(newMesh->checkMesh());
 }
 
 void Subdiv::subdivideTernary(const Mesh* oldMesh, Mesh* newMesh) {

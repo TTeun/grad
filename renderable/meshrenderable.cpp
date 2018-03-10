@@ -1,4 +1,5 @@
 #include "meshrenderable.h"
+#include <cassert>
 
 MeshRenderable::MeshRenderable() : Renderable() {}
 
@@ -10,24 +11,23 @@ void MeshRenderable::fillCoords() {
   unsigned int index = 0;
   auto const   faces = m_mesh->faces();
   HalfEdge*    currentEdge;
-  for (auto face : faces) {
+  for (auto const& face : faces) {
     currentEdge = face.side();
 
     for (size_t i = 0; i != face.val(); ++i) {
       m_data->push_back(currentEdge->target()->coords()[0]);
       m_data->push_back(currentEdge->target()->coords()[1]);
 
-      if (currentEdge->target()->out()) {
+      if (currentEdge->polygon() == &face) {
         m_data->push_back(currentEdge->colour()[0]);
         m_data->push_back(currentEdge->colour()[1]);
         m_data->push_back(currentEdge->colour()[2]);
+      } else {
+        m_data->push_back(0.);
+        m_data->push_back(0.);
+        m_data->push_back(1.);
       }
 
-      else {
-        m_data->push_back(1.);
-        m_data->push_back(0.);
-        m_data->push_back(0.);
-      }
       m_indices->push_back(index);
       ++index;
       currentEdge = currentEdge->next();

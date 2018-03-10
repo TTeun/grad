@@ -34,7 +34,7 @@ class MeshHandler : public QObject {
  private:
   HalfEdge* findClosest(const QVector2D& mousePosition);
 
-  size_t m_ccSteps          = 4;
+  size_t m_ccSteps;
   size_t m_currentMeshIndex = 0;
 
   std::vector<std::unique_ptr<Mesh>>   m_meshVector;

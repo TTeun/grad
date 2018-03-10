@@ -51,7 +51,7 @@ Mesh::Mesh(const OBJFile* const loadedOBJFile) {
       // Target, Next, Prev, Twin, Poly, Index
       m_halfEdges.append(
           HalfEdge(&m_vertices[loadedOBJFile->faceCoordInd[currentIndex + n]],
-                   QVector3D(1., 0.0, 0.0),
+                   QVector3D(1., 1., 1.),
                    nullptr,
                    nullptr,
                    nullptr,
@@ -169,13 +169,13 @@ void Mesh::copy(Mesh const* mesh) {
   for (size_t es = 0; es < numEdges; ++es) {
     currentEdge = &mesh->m_halfEdges[es];
     m_halfEdges.append(HalfEdge(nullptr,
-                                currentEdge->colour(),
+                                QVector3D(1., 1., 1.),
+                                //                                currentEdge->colour(),
                                 nullptr,
                                 nullptr,
                                 nullptr,
                                 nullptr,
                                 currentEdge->index(),
-                                currentEdge->isColourDiscontinuous(),
                                 currentEdge->sharpness(),
                                 currentEdge->colGrad()));
     if (currentEdge->index() != es) qDebug() << "Edge index mismatch";
@@ -211,9 +211,9 @@ QVector<Face>& Mesh::faces() { return m_faces; }
 QVector<HalfEdge>& Mesh::halfEdges() { return m_halfEdges; }
 
 bool Mesh::checkMesh() const {
-  assert(m_halfEdges.back().index() == m_halfEdges.size() - 1);
-  assert(m_vertices.back().index() == m_vertices.size() - 1);
-  assert(m_faces.back().index() == m_faces.size() - 1);
+  assert(m_halfEdges.back().index() == m_halfEdges.size() - 1u);
+  assert(m_vertices.back().index() == m_vertices.size() - 1u);
+  assert(m_faces.back().index() == m_faces.size() - 1u);
 
   for (Face const& face : m_faces) {
     assert(face.side());
@@ -243,6 +243,14 @@ bool Mesh::checkMesh() const {
     assert(vtx.index() == (&vtx - &m_vertices[0]));
   }
 
+  for (HalfEdge const& edge : m_halfEdges) {
+    assert(edge.twin()->twin() == &edge);
+    assert(edge.prev()->next() == &edge);
+    assert(edge.next()->prev() == &edge);
+
+    assert(edge.polygon() || edge.twin()->polygon());
+  }
+
   HalfEdge* currentEdge;
   for (Vertex const& vtx : m_vertices) {
     assert(vtx.out()->twin()->target() == &vtx);
@@ -255,12 +263,6 @@ bool Mesh::checkMesh() const {
     assert(currentEdge == vtx.out());
 
     for (size_t i = 0; i != vtx.val(); ++i) currentEdge = currentEdge->prev()->twin();
-  }
-
-  for (HalfEdge const& edge : m_halfEdges) {
-    assert(edge.twin()->twin() == &edge);
-    assert(edge.prev()->next() == &edge);
-    assert(edge.next()->prev() == &edge);
   }
 
   for (Face const& face : m_faces) {
@@ -336,7 +338,7 @@ void Mesh::setTwins(size_t numHalfEdges, size_t indexH) {
 
       // Target, Next, Prev, Twin, Poly, Index
       m_halfEdges.append(HalfEdge(initialEdge->prev()->target(),
-                                  QVector3D(1., 0.0, 0.0),
+                                  QVector3D(1., 1., 1.),
                                   nullptr,
                                   nullptr,
                                   initialEdge,
@@ -359,7 +361,7 @@ void Mesh::setTwins(size_t numHalfEdges, size_t indexH) {
 
         // Target, Next, Prev, Twin, Poly, Index
         m_halfEdges.append(HalfEdge(currentEdge->prev()->target(),
-                                    QVector3D(1., 0.0, 0.0),
+                                    QVector3D(1., 1., 1.),
                                     nullptr,
                                     &m_halfEdges[indexH - 1],
                                     currentEdge,
