@@ -9,6 +9,17 @@
 class Face;
 
 class HalfEdge {
+ private:
+  Vertex*      m_target;
+  QVector3D    m_colour;
+  HalfEdge*    m_next;
+  HalfEdge*    m_prev;
+  HalfEdge*    m_twin;
+  Face*        m_polygon;
+  unsigned int m_index;
+  float        m_sharpness;
+  QVector2D    m_colGrad;
+
  public:
   HalfEdge();
   HalfEdge(Vertex*          target,
@@ -60,17 +71,6 @@ class HalfEdge {
 
   Vertex* target() const;
   void    setTarget(Vertex* target);
-
- private:
-  Vertex*      m_target;
-  QVector3D    m_colour;
-  HalfEdge*    m_next;
-  HalfEdge*    m_prev;
-  HalfEdge*    m_twin;
-  Face*        m_polygon;
-  unsigned int m_index;
-  float        m_sharpness;
-  QVector2D    m_colGrad;
 };
 
 #endif  // HALFEDGE

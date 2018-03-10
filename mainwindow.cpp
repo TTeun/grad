@@ -7,11 +7,13 @@
 
 MainWindow::MainWindow()
     : m_mouseHandler(new MouseHandler(this)),
-      m_meshHandler(new MeshHandler(this)),
-      m_controlWidget(new ControlWidget()) {
+      m_controlWidget(new ControlWidget()),
+      m_meshHandler(new MeshHandler(m_controlWidget->viewState(), this)) {
   m_mouseHandler->setHeight(height());
   m_mouseHandler->setWidth(width());
   m_controlWidget->show();
+  m_controlWidget->raise();
+  m_controlWidget->activateWindow();
   qDebug() << "MainWindow constructed";
 }
 
@@ -33,14 +35,9 @@ void MainWindow::initializeGL() {
   connectMembers();
 }
 
-void MainWindow::initMembers() { m_meshHandler->init(QString("models/square.obj")); }
+void MainWindow::initMembers() { m_meshHandler->init(QString("models/tri1.obj")); }
 
 void MainWindow::connectMembers() {
-  assert(QObject::connect(m_controlWidget.get()->getUi()->meshIndexSpinBox,
-                          SIGNAL(valueChanged(int)),
-                          this->m_meshHandler.get(),
-                          SLOT(currentMeshIndexChanged(int))));
-
   assert(
       QObject::connect(m_meshHandler.get(), SIGNAL(hasChanged()), this, SLOT(update())));
 

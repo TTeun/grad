@@ -5,6 +5,9 @@
 #include "renderable.h"
 
 class MeshRenderable : public Renderable {
+ private:
+  Mesh* m_mesh;
+
  public:
   MeshRenderable();
   ~MeshRenderable();
@@ -13,7 +16,6 @@ class MeshRenderable : public Renderable {
 
  private:
   void fillCoords() override;
-  Mesh* m_mesh;
 };
 
 #endif  // MESHRENDERABLE_H

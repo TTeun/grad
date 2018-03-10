@@ -8,14 +8,15 @@
 
 class OBJFile {
  public:
+  QVector<QVector2D>      vertexCoords;
+  QVector<QVector3D>      vertexColours;
+  QVector<unsigned short> faceValences;
+  QVector<unsigned int>   faceCoordInd;
+
+ public:
   OBJFile(QString const& fileName);
   OBJFile(QString const& file, int x);
   ~OBJFile();
-
-  QVector<QVector2D> vertexCoords;
-  QVector<QVector3D> vertexColours;
-  QVector<unsigned short> faceValences;
-  QVector<unsigned int> faceCoordInd;
 };
 
 #endif  // OBJFILE_H

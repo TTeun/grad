@@ -13,7 +13,7 @@ void MeshRenderable::fillCoords() {
   HalfEdge*    currentEdge;
   for (auto const& face : faces) {
     currentEdge = face.side();
-
+    m_data->reserve(m_data->size() + 5 * face.val());
     for (size_t i = 0; i != face.val(); ++i) {
       m_data->push_back(currentEdge->target()->coords()[0]);
       m_data->push_back(currentEdge->target()->coords()[1]);

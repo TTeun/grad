@@ -102,11 +102,9 @@ QVector3D HalfEdge::centerColour() const {
 }
 
 QVector3D HalfEdge::endColour() const {
-  //  if (m_target->getBoundaryEdge() == nullptr) return QVector3D(1., 1., 1.);
-
-  return m_colour;
   QVector3D c(0., 0., 0.);
   auto      currentEdge = this;
+  assert(m_target->val() != 0);
   for (size_t i = 0; i != m_target->val(); ++i) {
     if (currentEdge->polygon()) c += currentEdge->polygon()->centerColour();
 

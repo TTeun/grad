@@ -26,7 +26,8 @@ SOURCES += main.cpp \
     controlwidget.cpp \
     mesh/meshhandler.cpp \
     mousehandler.cpp \
-    renderable/selectionrenderable.cpp
+    renderable/selectionrenderable.cpp \
+    viewstate.cpp
 
 HEADERS += \
     mesh/vertex.h \
@@ -41,7 +42,8 @@ HEADERS += \
     controlwidget.h \
     mesh/meshhandler.h \
     mousehandler.h \
-    renderable/selectionrenderable.h
+    renderable/selectionrenderable.h \
+    viewstate.h
 
 RESOURCES += \
     resources.qrc

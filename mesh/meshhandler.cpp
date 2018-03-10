@@ -1,12 +1,22 @@
 #include "meshhandler.h"
-#include <QColorDialog>
 
-MeshHandler::MeshHandler(QObject* parent)
+#include <QColorDialog>
+#include <cassert>
+
+MeshHandler::MeshHandler(ViewState* const viewState, QObject* parent)
     : QObject(parent),
+      m_viewState(viewState),
       m_meshRenderable(new MeshRenderable()),
       m_skeletonRenderable(new MeshRenderable()),
       m_selectionRenderable(new SelectionRenderable()) {
-  m_ccSteps = 2;
+  assert(QObject::connect(m_viewState,
+                          &ViewState::refinementLevelChanged,
+                          this,
+                          &MeshHandler::refinementLevelChanged));
+
+  assert(QObject::connect(
+      m_viewState, &ViewState::updated, this, &MeshHandler::updateScene));
+
   qDebug() << "MeshHandler constructed";
 }
 
@@ -19,8 +29,7 @@ void MeshHandler::init(const QString& path) {
   }
 
   m_meshRenderable->init();
-  m_meshRenderable->setRenderMode(static_cast<int>(Renderable::RenderMode::SURFACE) |
-                                  static_cast<int>(Renderable::RenderMode::POINTS));
+  m_meshRenderable->setRenderMode(static_cast<int>(Renderable::RenderMode::SURFACE));
   m_skeletonRenderable->init();
   m_selectionRenderable->init();
   m_skeletonRenderable->setRenderMode(static_cast<int>(Renderable::RenderMode::LINES));
@@ -30,36 +39,30 @@ void MeshHandler::init(const QString& path) {
 void MeshHandler::buildMeshes(size_t startIndex) {
   m_meshVector.resize(1);
 
-  //  m_meshVector.push_back(m_meshVector.back()->ternarySubdiv());
-
-  for (size_t i = startIndex; i < m_ccSteps; ++i) {
+  m_meshVector.push_back(m_meshVector.back()->ternarySubdiv());
+  for (size_t i = 0; i < m_viewState->ccSteps(); ++i) {
     m_meshVector.push_back(m_meshVector.back()->ccSubdiv());
   }
 
-  m_skeletonRenderable->setMesh(m_meshVector[0].get());
+  m_skeletonRenderable->setMesh(m_meshVector[m_viewState->refinementLevel()].get());
   m_skeletonRenderable->setCoordsNeedToBeFilled(true);
   m_meshRenderable->setMesh(m_meshVector.back().get());
   m_meshRenderable->setCoordsNeedToBeFilled(true);
 }
 
 void MeshHandler::render() const {
-  m_meshRenderable->render();
-  m_skeletonRenderable->render();
+  if (m_viewState->showSurface()) m_meshRenderable->render();
+  if (m_viewState->showLines()) m_skeletonRenderable->render();
+
   m_selectionRenderable->render();
 }
 
-size_t MeshHandler::ccSteps() const { return m_ccSteps; }
+void MeshHandler::updateScene() { emit hasChanged(); }
 
-void MeshHandler::setCcSteps(const size_t& ccSteps) { m_ccSteps = ccSteps; }
+void MeshHandler::refinementLevelChanged() {
+  buildMeshes();
 
-void MeshHandler::currentMeshIndexChanged(int newIndex) {
-  m_currentMeshIndex = newIndex;
-  if (m_currentMeshIndex > ccSteps()) {
-    m_ccSteps = m_currentMeshIndex;
-    buildMeshes();
-  }
-
-  m_skeletonRenderable->setMesh(m_meshVector[m_currentMeshIndex].get());
+  m_skeletonRenderable->setMesh(m_meshVector[m_viewState->refinementLevel()].get());
   m_skeletonRenderable->setCoordsNeedToBeFilled(true);
   emit hasChanged();
 }
@@ -69,22 +72,28 @@ void MeshHandler::setColour(const QVector2D& mousePosition) {
   if ((edge = findClosest(mousePosition)) == nullptr) return;
 
   QColor color = QColorDialog::getColor(Qt::white);
-  edge->setColour(QVector3D(color.redF(), color.greenF(), color.blueF()));
+  if (m_colourSetMode == COLOUR_SET_MODE::BY_EDGE)
+    edge->setColour(QVector3D(color.redF(), color.greenF(), color.blueF()));
+  else if (m_colourSetMode == COLOUR_SET_MODE::BY_VERTEX) {
+    for (size_t i = 0; i != edge->target()->val(); ++i) {
+      edge->setColour(QVector3D(color.redF(), color.greenF(), color.blueF()));
+      edge = edge->next()->twin();
+    }
+  }
 
-  buildMeshes(m_currentMeshIndex + 1);
+  buildMeshes(m_viewState->refinementLevel() + 1);
   emit hasChanged();
 }
 
 HalfEdge* MeshHandler::findClosest(QVector2D const& mousePosition) {
   Face* selectedFace = nullptr;
-  for (auto face : m_meshVector[m_currentMeshIndex]->faces()) {
+  for (auto face : m_meshVector[m_viewState->refinementLevel()]->faces()) {
     if (face.containsPoint(mousePosition)) {
       selectedFace = &face;
       break;
     }
   }
   if (not selectedFace) {
-    qDebug() << "Outside polygon\n";
     return nullptr;
   }
 
@@ -98,9 +107,11 @@ HalfEdge* MeshHandler::findClosest(QVector2D const& mousePosition) {
     }
     currentEdge = currentEdge->next();
   }
-  if (edgeIndex != std::numeric_limits<size_t>::max())
-    m_selectionRenderable->fillCoords(
-        &m_meshVector[m_currentMeshIndex]->halfEdges().at(edgeIndex));
+  //  if (edgeIndex != std::numeric_limits<size_t>::max())
+  //    m_selectionRenderable->fillCoords(
+  //        &m_meshVector[m_viewState->refinementLevel()]->halfEdges().at(edgeIndex));
 
-  return &m_meshVector[m_currentMeshIndex]->halfEdges()[edgeIndex];
+  return &m_meshVector[m_viewState->refinementLevel()]->halfEdges()[edgeIndex];
 }
+
+ViewState* MeshHandler::viewState() const { return m_viewState; }

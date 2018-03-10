@@ -221,6 +221,13 @@ bool Mesh::checkMesh() const {
     assert(face.index() == (&face - &m_faces[0]));
   }
 
+  for (Vertex const& vtx : m_vertices) {
+    assert(vtx.out());
+    assert(vtx.out() == &m_halfEdges[vtx.out()->index()]);
+    assert(vtx.index() == (&vtx - &m_vertices[0]));
+    assert(&vtx == &m_vertices[vtx.index()]);
+  }
+
   for (HalfEdge const& edge : m_halfEdges) {
     assert(edge.next());
     assert(edge.twin());
@@ -230,17 +237,10 @@ bool Mesh::checkMesh() const {
     assert(edge.next() == &m_halfEdges[edge.next()->index()]);
     assert(edge.twin() == &m_halfEdges[edge.twin()->index()]);
     assert(edge.prev() == &m_halfEdges[edge.prev()->index()]);
+    assert(edge.target());
     assert(edge.target() == &m_vertices[edge.target()->index()]);
 
     assert(edge.index() == (&edge - &m_halfEdges[0]));
-  }
-
-  for (Vertex const& vtx : m_vertices) {
-    assert(vtx.out());
-
-    assert(vtx.out() == &m_halfEdges[vtx.out()->index()]);
-
-    assert(vtx.index() == (&vtx - &m_vertices[0]));
   }
 
   for (HalfEdge const& edge : m_halfEdges) {

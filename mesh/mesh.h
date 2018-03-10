@@ -8,6 +8,12 @@
 #include "vertex.h"
 
 class Mesh {
+ private:
+  QVector<Vertex>          m_vertices;
+  QVector<Face>            m_faces;
+  QVector<HalfEdge>        m_halfEdges;
+  QVector<QVector<size_t>> PotentialTwins;
+
  public:
   Mesh();
   Mesh(OBJFile const* const loadedOBJFile);
@@ -29,11 +35,6 @@ class Mesh {
   std::unique_ptr<Mesh> ternarySubdiv() const;
 
  private:
-  QVector<Vertex>          m_vertices;
-  QVector<Face>            m_faces;
-  QVector<HalfEdge>        m_halfEdges;
-  QVector<QVector<size_t>> PotentialTwins;
-
   void setTwins(size_t numHalfEdges, size_t indexH);
 };
 

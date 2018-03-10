@@ -7,6 +7,11 @@
 
 class MouseHandler : public QObject {
   Q_OBJECT
+ private:
+  QVector2D m_mousePosition;
+  size_t    m_width;
+  size_t    m_height;
+
  public:
   explicit MouseHandler(QObject* parent = nullptr);
 
@@ -25,12 +30,6 @@ class MouseHandler : public QObject {
   void leftClicked(QVector2D const& pos);
 
  public slots:
-
- private:
-  QVector2D m_mousePosition;
-
-  size_t m_width;
-  size_t m_height;
 };
 
 #endif  // MOUSEHANDLER_H

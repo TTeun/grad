@@ -14,6 +14,11 @@
 class MainWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_1_Core {
   Q_OBJECT
 
+ private:
+  std::unique_ptr<MouseHandler>  m_mouseHandler;
+  std::unique_ptr<ControlWidget> m_controlWidget;
+  std::unique_ptr<MeshHandler>   m_meshHandler;
+
  public:
   MainWindow();
   ~MainWindow();
@@ -34,10 +39,6 @@ class MainWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_1_Core {
   void mousePressEvent(QMouseEvent* event);
   void mouseReleaseEvent(QMouseEvent* event);
   void mouseMoveEvent(QMouseEvent* event);
-
-  std::unique_ptr<MouseHandler>  m_mouseHandler;
-  std::unique_ptr<MeshHandler>   m_meshHandler;
-  std::unique_ptr<ControlWidget> m_controlWidget;
 };
 
 #endif  // WINDOW_H

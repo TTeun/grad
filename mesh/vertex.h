@@ -9,6 +9,13 @@
 class HalfEdge;
 
 class Vertex {
+ private:
+  QVector2D      m_coords;
+  HalfEdge*      m_out;
+  unsigned short m_val;
+  unsigned int   m_index;
+  unsigned short m_sharpness;
+
  public:
   Vertex();
   Vertex(QVector2D const& coords,
@@ -35,13 +42,6 @@ class Vertex {
   void           setSharpness(unsigned short sharpness);
 
   HalfEdge* getBoundaryEdge() const;
-
- private:
-  QVector2D      m_coords;
-  HalfEdge*      m_out;
-  unsigned short m_val;
-  unsigned int   m_index;
-  unsigned short m_sharpness;
 };
 
 #endif  // VERTEX

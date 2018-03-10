@@ -3,7 +3,10 @@
 
 #include <QCloseEvent>
 #include <QWidget>
+#include <memory>
+
 #include "mesh/meshhandler.h"
+#include "viewstate.h"
 
 namespace Ui {
 class ControlWidget;
@@ -20,11 +23,14 @@ class ControlWidget : public QWidget {
 
   Ui::ControlWidget* getUi() const;
 
+  ViewState* viewState() const;
+
  signals:
   void aboutToClose();
 
  private:
-  Ui::ControlWidget* ui;
+  Ui::ControlWidget*         ui;
+  std::unique_ptr<ViewState> m_viewState;
 };
 
 #endif  // CONTROLWIDGET_H

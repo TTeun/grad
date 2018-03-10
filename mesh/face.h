@@ -7,6 +7,11 @@
 class HalfEdge;
 
 class Face {
+ private:
+  HalfEdge*      m_side;
+  unsigned short m_val;
+  unsigned int   m_index;
+
  public:
   Face() : m_side(nullptr), m_val(0), m_index(0) {}
 
@@ -22,11 +27,6 @@ class Face {
   QVector3D centerColour() const;
 
   bool containsPoint(QVector2D const& point);
-
- private:
-  HalfEdge*      m_side;
-  unsigned short m_val;
-  unsigned int   m_index;
 };
 
 #endif  // FACE
